@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BFS — Teoría de la Computación</title>
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Inter:wght@400;700&display=swap');
+
+:root {
+  --black:  #0A0A0A;
+  --yellow: #FFD700;
+  --teal:   #00BCD4;
+  --pink:   #FF4081;
+  --green:  #39FF14;
+  --cream:  #F5F0DC;
+  --white:  #FFFFFF;
+  --gray:   #888888;
+  --dark:   #111111;
+  --mono:   'Share Tech Mono', monospace;
+  --pixel:  'Press Start 2P', monospace;
+  --sans:   'Inter', sans-serif;
+  
+  --slide-width: 1280px;
+  --slide-height: 720px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #020202;
+  font-family: var(--mono);
+  overflow: hidden;
+  color: var(--white);
+}
+
+/* ── DECK CONTAINER ── */
+#deck {
+  position: relative;
+  width: 100vw; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  perspective: 2500px;
+}
+
+/* ── SLIDE ── */
+#scaler {
+  position: relative;
+  width: var(--slide-width);
+  height: var(--slide-height);
+  transform-origin: center center;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: var(--black);
+  overflow: hidden;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 0 100px rgba(0,0,0,1);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 90px;
+}
+.slide.active { display: flex; }
+
+/* ── CRT EFFECT ── */
+#deck::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.01));
+  z-index: 200;
+  background-size: 100% 4px, 3px 100%;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-wrap {
+  position: fixed; top: 0; left: 0; width: 100%; height: 6px;
+  background: rgba(255,255,255,0.05); z-index: 300;
+}
+#progress-bar {
+  height: 100%; width: 0%; background: var(--teal);
+  box-shadow: 0 0 20px var(--teal);
+}
+
+/* ── NAV ── */
+#nav {
+  position: fixed; bottom: 30px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 20px; align-items: center;
+  z-index: 100;
+  background: rgba(10,10,10,0.9);
+  padding: 12px 24px;
+  border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+.nav-btn {
+  font-family: var(--pixel); font-size: 11px;
+  background: transparent; color: var(--yellow);
+  border: 2px solid var(--yellow);
+  padding: 10px 22px; cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+}
+.nav-btn:hover:not(:disabled) { 
+  background: var(--yellow); color: var(--dark); 
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+  transform: translateY(-3px);
+}
+.nav-btn:disabled { opacity: .15; cursor: default; border-color: var(--gray); color: var(--gray); }
+#slide-counter {
+  font-family: var(--pixel); font-size: 11px;
+  color: var(--white); min-width: 140px; text-align: center;
+}
+
+/* ════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════ */
+
+.pixel-title {
+  font-family: var(--pixel);
+  font-size: 34px;
+  color: var(--yellow);
+  letter-spacing: 5px;
+  line-height: 1.4;
+  text-shadow: 4px 4px 0 var(--dark);
+}
+.pixel-title.yellow { color: var(--yellow); }
+.pixel-title.teal { color: var(--teal); }
+.pixel-title.pink { color: var(--pink); }
+.pixel-title.dark { color: var(--dark); text-shadow: none; }
+.pixel-title.sm { font-size: 24px; }
+.pixel-title.xs { font-size: 18px; }
+
+.card {
+  background: var(--cream);
+  border: 5px solid var(--yellow);
+  padding: 25px 35px;
+  color: var(--dark);
+  font-size: 20px;
+  line-height: 1.6;
+  box-shadow: 12px 12px 0 rgba(0,0,0,0.4);
+}
+.card.teal-border { border-color: var(--teal); }
+.card.pink-border { border-color: var(--pink); }
+
+.wavy {
+  display: flex; gap: 0; align-items: center;
+  height: 20px; margin: 10px 0;
+}
+.wavy span {
+  display: inline-block;
+  width: 30px; height: 10px;
+  background: var(--pink);
+}
+.wavy span:nth-child(even) { transform: translateY(8px); }
+.wavy.teal span { background: var(--teal); }
+
+.corner-tl { position: absolute; top: -40px; left: -40px; width: 180px; height: 180px; background: var(--yellow); border-radius: 50%; opacity: 0.8; z-index: -1; }
+.corner-tr { position: absolute; top: -50px; right: -50px; width: 220px; height: 220px; background: var(--pink); border-radius: 50%; opacity: 0.8; z-index: -1; }
+.corner-bl { position: absolute; bottom: -30px; left: -20px; width: 160px; height: 160px; background: var(--teal); border-radius: 50%; opacity: 0.8; z-index: -1; }
+
+/* ════════════════════════════════════════
+   SLIDE 1 — PORTADA
+═══════════════════════════════════════ */
+#s1 { justify-content: center; align-items: center; padding-bottom: 0; }
+.monitor-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+.monitor-body { background: var(--teal); padding: 15px; border-radius: 15px 15px 0 0; position: relative; box-shadow: 0 12px 0 #008ba3; }
+.monitor-screen { background: #050505; width: 420px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 10px solid #222; position: relative; overflow: hidden; }
+.monitor-screen::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 100%; background: linear-gradient(transparent 50%, rgba(0,0,0,0.3) 50%); background-size: 100% 6px; pointer-events: none; }
+.monitor-screen .s-title { font-family: var(--pixel); font-size: 38px; color: var(--green); letter-spacing: 6px; text-align: center; line-height: 1.6; z-index: 1; text-shadow: 0 0 20px rgba(57, 255, 20, 0.5); }
+.monitor-dots { display: flex; gap: 10px; margin-top: 10px; }
+.monitor-dots span { width: 14px; height: 14px; border-radius: 50%; background: #444; }
+.monitor-dots span:last-child { background: var(--pink); box-shadow: 0 0 15px var(--pink); }
+.monitor-stand { width: 60px; height: 30px; background: #008ba3; margin: 0 auto; }
+.monitor-keyboard { width: 480px; height: 80px; background: #222; border-radius: 10px; display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(3, 1fr); gap: 5px; padding: 12px; box-shadow: 0 8px 0 #111; }
+.key { background: #444; border-radius: 2px; }
+.portada-content { text-align: center; }
+.portada-title { font-family: var(--pixel); font-size: 24px; color: var(--yellow); letter-spacing: 3px; margin-top: 20px; line-height: 1.6; }
+.portada-sub { font-family: var(--mono); font-size: 22px; color: var(--teal); margin-top: 15px; }
+.portada-info { font-family: var(--mono); font-size: 16px; color: var(--gray); margin-top: 10px; }
+
+/* ════════════════════════════════════════
+   SLIDE 2 — AGENDA
+═══════════════════════════════════════ */
+.agenda-header { background: var(--dark); border-bottom: 8px solid var(--teal); padding: 50px 80px; }
+.agenda-body { flex: 1; padding: 30px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-content: start; }
+.agenda-item { 
+  display: flex; align-items: center; gap: 20px; 
+  padding: 18px 25px; background: var(--cream); 
+  border-left: 10px solid var(--yellow); 
+  font-size: 20px; color: var(--dark); 
+  font-family: var(--mono); 
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.agenda-item:hover { transform: scale(1.03); background: var(--white); box-shadow: 10px 10px 20px rgba(255,215,0,0.2); }
+.agenda-item:nth-child(even) { border-left-color: var(--teal); }
+.agenda-num { font-family: var(--pixel); font-size: 16px; color: var(--yellow); min-width: 40px; }
+.agenda-item:nth-child(even) .agenda-num { color: var(--teal); }
+
+/* ════════════════════════════════════════
+   SLIDE 3 — EL PROBLEMA
+═══════════════════════════════════════ */
+#s3 { flex-direction: row; align-items: stretch; }
+.s3-left { width: 450px; background: var(--yellow); display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 40px; flex-shrink: 0; position: relative; }
+.graph-circle { width: 320px; height: 360px; background: var(--dark); border-radius: 50px; border: 12px solid var(--dark); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px; box-shadow: 0 0 60px rgba(0,0,0,0.4); }
+.graph-circle .gc-label { font-family: var(--pixel); font-size: 18px; color: var(--yellow); text-align: center; }
+.s3-right { flex: 1; padding: 50px 80px; display: flex; flex-direction: column; gap: 20px; border-left: 12px solid var(--teal); background: #080808; overflow-y: auto; }
+.s3-card { background: var(--cream); border: 5px solid var(--teal); padding: 20px 30px; font-size: 19px; color: var(--dark); line-height: 1.5; box-shadow: 8px 8px 0 rgba(0,0,0,0.1); }
+
+/* ════════════════════════════════════════
+   CODE SLIDES (PSeInt Style)
+═══════════════════════════════════════ */
+.code-slide-header { background: var(--dark); border-bottom: 6px solid var(--teal); padding: 20px 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.code-slide-body { flex: 1; display: flex; overflow: hidden; }
+.code-pane { width: 750px; background: #0D1B2A; border-right: 6px solid var(--teal); padding: 40px; font-family: var(--mono); font-size: 19px; line-height: 1.7; color: #CCC; flex-shrink: 0; position: relative; }
+.code-pane .line { display: block; white-space: pre; border-left: 5px solid transparent; padding-left: 15px; transition: all 0.3s; margin-bottom: 2px; }
+.code-pane .line.executing { background: rgba(57, 255, 20, 0.25); color: var(--green); font-weight: bold; border-left-color: var(--green); box-shadow: 0 0 15px rgba(57, 255, 20, 0.2); transform: translateX(5px); }
+.code-pane .kw { color: var(--teal); }
+.code-pane .cmt { color: #556677; font-style: italic; }
+.code-pane .op { color: var(--pink); }
+
+.explain-pane { flex: 1; background: var(--cream); padding: 40px 60px; display: flex; flex-direction: column; gap: 15px; color: var(--dark); overflow-y: auto; }
+.explain-pane h3 { font-family: var(--pixel); font-size: 14px; border-bottom: 4px solid var(--yellow); padding-bottom: 10px; margin-bottom: 5px; }
+.explain-pane p { font-size: 18px; line-height: 1.5; }
+.explain-pane .tag { display: inline-block; font-family: var(--pixel); font-size: 11px; padding: 5px 10px; background: var(--yellow); border-radius: 6px; margin-right: 5px; margin-bottom: 5px; }
+.explain-pane .tag.teal { background: var(--teal); }
+.explain-pane .tag.pink { background: var(--pink); }
+.explain-note { margin-top: auto; background: #FFF3B0; border-left: 8px solid var(--yellow); padding: 15px; font-size: 17px; line-height: 1.4; }
+
+/* Variable Watch */
+.var-watch { 
+  position: absolute; bottom: 30px; right: 30px; 
+  background: rgba(10,10,10,0.9); border: 2px solid var(--teal); 
+  padding: 20px; border-radius: 12px; font-family: var(--pixel); 
+  font-size: 10px; color: var(--teal); z-index: 10;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  display: none;
+  min-width: 200px;
+}
+.var-watch .v-header { border-bottom: 1px solid var(--teal); padding-bottom: 8px; margin-bottom: 10px; color: var(--white); font-size: 11px; }
+.var-watch .v-row { margin-bottom: 8px; display: flex; justify-content: space-between; gap: 20px; }
+.var-watch .v-val { color: var(--yellow); text-shadow: 0 0 5px rgba(255,215,0,0.3); }
+
+/* ════════════════════════════════════════
+   SIMULATOR SLIDE
+═══════════════════════════════════════ */
+.sim-node {
+  position: absolute; width: 64px; height: 64px; border-radius: 50%;
+  background: var(--black); border: 4px solid var(--gray); color: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--pixel); font-size: 12px; z-index: 10;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  text-shadow: 2px 2px 0 var(--black);
+  transition: all 0.3s;
+}
+.sim-node.active-s { border-color: var(--teal); background: rgba(0,188,212,0.2); box-shadow: 0 0 20px var(--teal); }
+.sim-node.active-t { border-color: var(--pink); background: rgba(255,64,129,0.2); box-shadow: 0 0 30px var(--pink); color:var(--pink); }
+.sim-node.visited { border-color: var(--gray); background: #222; color: #666; }
+
+/* ════════════════════════════════════════
+   INVARIANT SLIDES
+═══════════════════════════════════════ */
+.inv-header { padding: 30px 80px; display: flex; align-items: center; gap: 35px; border-bottom: 8px solid var(--yellow); flex-shrink: 0; }
+.inv-badge { width: 85px; height: 85px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--pixel); font-size: 30px; flex-shrink: 0; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+.inv-statement { margin: 30px 80px; background: #001A2A; border: 5px solid var(--teal); padding: 25px 40px; font-size: 22px; color: var(--teal); font-family: var(--mono); line-height: 1.5; box-shadow: 0 0 50px rgba(0,188,212,0.1); flex-shrink: 0; }
+.inv-panels { display: flex; gap: 30px; padding: 0 80px 40px; flex: 1; overflow: hidden; }
+.inv-panel { flex: 1; background: var(--cream); border: 5px solid var(--yellow); display: flex; flex-direction: column; box-shadow: 8px 8px 0 rgba(0,0,0,0.1); overflow-y: auto; }
+.inv-panel-header { background: var(--yellow); padding: 12px 20px; font-family: var(--pixel); font-size: 13px; color: var(--dark); flex-shrink: 0; }
+.inv-panel.alt .inv-panel-header { background: var(--teal); }
+.inv-panel.alt { border-color: var(--teal); }
+.inv-panel-body { padding: 25px; font-size: 19px; color: var(--dark); line-height: 1.6; }
+
+/* ════════════════════════════════════════
+   COMPARISON TABLE
+═══════════════════════════════════════ */
+.cmp-table { margin: 0 80px; border-collapse: collapse; width: calc(100% - 160px); box-shadow: 15px 15px 0 rgba(0,0,0,0.2); }
+.cmp-table th { background: var(--dark); color: var(--yellow); font-family: var(--pixel); font-size: 15px; padding: 20px; border: 3px solid #333; }
+.cmp-table th:nth-child(2) { color: var(--teal); }
+.cmp-table th:nth-child(3) { color: var(--pink); }
+.cmp-table td { padding: 20px; font-size: 19px; color: var(--dark); background: var(--cream); border: 3px solid #ccc; font-family: var(--mono); }
+
+/* ════════════════════════════════════════
+   ANIMATION CLASSES
+═══════════════════════════════════════ */
+.animate { opacity: 0; }
+</style>
+</head>
+<body>
+
+<div id="progress-wrap"><div id="progress-bar"></div></div>
+
+<div id="deck">
+<div id="scaler">
+
+<!-- SLIDE 1: PORTADA -->
+<div class="slide active" id="s1">
+  <div class="corner-tl"></div>
+  <div class="corner-tr"></div>
+  <div class="corner-bl"></div>
+
+  <div class="monitor-wrap">
+    <div class="monitor-body">
+      <div class="monitor-screen">
+        <span class="s-title">BFS<br>HOARE</span>
+      </div>
+      <div class="monitor-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="monitor-stand"></div>
+    <div class="monitor-keyboard">
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+      <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+    </div>
+  </div>
+
+  <div class="portada-content">
+    <div class="portada-title animate">VERIFICACIÓN FORMAL DEL ALGORITMO BFS</div>
+    <div class="portada-sub animate">Lógica de Hoare para Corrección de Algoritmos</div>
+    <div class="portada-info animate">Teoría de la Computación &nbsp;·&nbsp; Grupo #1 &nbsp;·&nbsp; EAFIT &nbsp;·&nbsp; 2026</div>
+    <div class="portada-names animate" style="font-family:var(--mono); font-size:16px; color:var(--white); margin-top:25px; line-height:1.6;">
+      SALOMÉ BEDOYA ECHAVARRÍA<br>
+      JUAN DAVID GIRALDO REGINO<br>
+      CLAUDIA YESENIA CASTAÑO QUINTERO
+    </div>
+    <div class="animate" style="margin-top: 35px;">
+      <a href="BFS_Hoare_Presentacion.pptx" download="BFS_Hoare_Grupo1.pptx" class="nav-btn" style="text-decoration:none; display:inline-block; font-size:12px; padding:12px 24px; border-color:var(--teal); color:var(--teal);">
+        📥 DESCARGAR PPTX (Respaldo)
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: AGENDA -->
+<div class="slide" id="s2">
+  <div class="agenda-header">
+    <div class="pixel-title animate">AGENDA</div>
+    <div class="wavy teal">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+  <div class="agenda-body">
+    <div class="agenda-item animate" onclick="goToSlideById('s3')"><span class="agenda-num">01</span>¿Qué problema resuelve BFS?</div>
+    <div class="agenda-item animate" onclick="goToSlideById('s4')"><span class="agenda-num">02</span>BFS vs DFS — La cola FIFO</div>
+    <div class="agenda-item animate" onclick="goToSlideById('sc1')"><span class="agenda-num">03</span>Algoritmo y Trazado de Código</div>
+    <div class="agenda-item animate" onclick="goToSlideById('s-hoare')"><span class="agenda-num">04</span>Lógica de Hoare: terna {P} S {Q}</div>
+    <div class="agenda-item animate" onclick="goToSlideById('s-i1')"><span class="agenda-num">05</span>Invariantes de bucle I₁, I₂, I₃</div>
+    <div class="agenda-item animate" onclick="goToSlideById('s-terminacion')"><span class="agenda-num">06</span>Terminación y Prueba Formal</div>
+  </div>
+</div>
+
+<!-- SLIDE 3: EL PROBLEMA -->
+<div class="slide" id="s3">
+  <div class="s3-left">
+    <div class="pixel-title dark xs animate" style="margin-bottom:30px">EL PROBLEMA</div>
+    <div class="graph-circle animate">
+      <div class="gc-label">G = (V, E)</div>
+      <div class="gc-label" style="color:var(--teal);font-size:32px">s ──▶ ?</div>
+      <div class="gc-label" style="color:var(--pink);font-size:32px">──▶ t</div>
+    </div>
+  </div>
+  <div class="s3-right">
+    <div class="pixel-title animate" style="font-size:30px">¿EXISTE UN CAMINO?</div>
+    <div class="wavy teal"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="s3-card animate">
+      <strong>Dado</strong> G = (V, E) grafo no dirigido.<br>
+      <strong>Dados</strong> s (origen) y t (destino) en V.<br>
+      <strong>¿Existe</strong> algún camino de s a t?
+    </div>
+    <div class="s3-card animate" style="border-color:var(--yellow)">
+      <strong>Aplicaciones Reales:</strong><br>
+      · Redes sociales (conectividad)<br>
+      · GPS (planificación de rutas)<br>
+      · Redes P2P (difusión de paquetes)
+    </div>
+    <div class="s3-card animate" style="border-color:var(--pink);background:#FFF0F4">
+      <strong style="color:var(--pink)">BFS garantiza</strong> encontrar el camino <em>más corto</em> si existe, explorando por niveles concéntricos.
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: BFS vs DFS -->
+<div class="slide" id="s4">
+  <div style="background:var(--dark);border-bottom:8px solid var(--yellow);padding:40px 80px">
+    <div class="pixel-title animate" style="font-size:32px">¿POR QUÉ BFS Y NO DFS?</div>
+  </div>
+  <div style="flex:1;display:flex;">
+    <div style="flex:1;background:#001A10;border-right:5px solid var(--teal);padding:50px;display:flex;flex-direction:column;gap:25px">
+      <div class="pixel-title teal xs animate">BFS ✓</div>
+      <div class="wavy teal"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="animate" style="font-size:19px;line-height:1.7">
+        Explora por <strong style="color:var(--teal)">NIVELES</strong> de distancia.<br>
+        Garantiza optimalidad en grafos no pesados.
+      </div>
+      <div class="animate" style="font-size:19px;line-height:1.7">
+        Usa una <strong style="color:var(--yellow)">cola FIFO</strong> (First In, First Out).<br>
+        Procesa el nivel k antes que el k+1.
+      </div>
+      <div class="animate" style="color:var(--green);font-family:var(--pixel);font-size:16px;margin-top:auto">→ CAMINO MÁS CORTO ✓</div>
+    </div>
+    <div style="flex:1;background:#1A0005;padding:50px;display:flex;flex-direction:column;gap:25px">
+      <div class="pixel-title pink xs animate">DFS ✗</div>
+      <div class="wavy"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="animate" style="font-size:19px;line-height:1.7">
+        Explora en <strong style="color:var(--pink)">PROFUNDIDAD</strong>.<br>
+        Puede "perderse" en una rama lejana.
+      </div>
+      <div class="animate" style="font-size:19px;line-height:1.7">
+        Usa una <strong style="color:var(--yellow)">pila LIFO</strong> (Last In, First Out).<br>
+        No respeta el orden por distancia.
+      </div>
+      <div class="animate" style="color:var(--pink);font-family:var(--pixel);font-size:16px;margin-top:auto">→ PUEDE NO SER ÓPTIMO ✗</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 1 -->
+<div class="slide code-slide" id="sc1">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">1 / 8 — Precondición</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp1">
+      <span class="line l1">// ⟨ Precondición P ⟩</span>
+      <span class="line l2">// G = (V, E) es grafo no dirigido</span>
+      <span class="line l3">// s, t ∈ V  y  V ≠ ∅</span>
+      <span class="line">&nbsp;</span>
+      <span class="line l4 kw">ALGORITMO BFS(G, s, t)</span>
+      <span class="line l5 kw">INICIO</span>
+      <span class="line l6 cmt">  // Cuerpo del algoritmo</span>
+      <span class="line l7 kw">FIN ALGORITMO</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">ASERCIONES INICIALES</h3>
+      <p class="animate">Garantizamos que las entradas son válidas:</p>
+      <p class="animate"><span class="tag">G=(V,E)</span> Grafo no dirigido.</p>
+      <p class="animate"><span class="tag teal">s, t ∈ V</span> Origen y destino existen.</p>
+      <p class="animate"><span class="tag pink">V ≠ ∅</span> El grafo no está vacío.</p>
+      <div class="explain-note animate">En Lógica de Hoare, esto es <strong>P</strong>. Sin ella, no hay garantía de corrección.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 2 -->
+<div class="slide code-slide" id="sc2">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">2 / 8 — Inicialización</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp2">
+      <span class="line l4 kw">ALGORITMO BFS(G, s, t)</span>
+      <span class="line l5 kw">INICIO</span>
+      <span class="line l8">  visitado   ← ∅</span>
+      <span class="line l9">  cola       ← Cola_Vacia()</span>
+      <span class="line l10">  encontrado ← Falso</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">INICIALIZACIÓN</h3>
+      <p class="animate">Preparamos las variables de estado:</p>
+      <p class="animate"><span class="tag">visitado</span> Conjunto para marcar nodos vistos.</p>
+      <p class="animate"><span class="tag teal">cola</span> Estructura FIFO de espera.</p>
+      <p class="animate"><span class="tag pink">encontrado</span> Bandera de éxito.</p>
+    </div>
+    <div class="var-watch" id="vw2">
+      <div class="v-header">REGISTROS</div>
+      <div class="v-row"><span>visitado</span> <span class="v-val">∅</span></div>
+      <div class="v-row"><span>cola</span> <span class="v-val">[]</span></div>
+      <div class="v-row"><span>encontrado</span> <span class="v-val">F</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 3 -->
+<div class="slide code-slide" id="sc3">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">3 / 8 — Punto de Partida</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp3">
+      <span class="line l11">  Agregar(visitado, s)</span>
+      <span class="line l12">  Encolar(cola, s)</span>
+      <span class="line">&nbsp;</span>
+      <span class="line l13 cmt">  // ← I₁, I₂, I₃ establecidos aquí</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">ESTABLECIENDO INVARIANTES</h3>
+      <p class="animate">El algoritmo comienza en el origen:</p>
+      <p class="animate"><strong>I₁ ✓</strong> s es alcanzable (distancia 0).</p>
+      <p class="animate"><strong>I₂ ✓</strong> El camino a t pasa por s (frente de cola).</p>
+      <p class="animate"><strong>I₃ ✓</strong> No hemos encontrado t (F ⟺ F).</p>
+    </div>
+    <div class="var-watch" id="vw3">
+      <div class="v-header">REGISTROS</div>
+      <div class="v-row"><span>visitado</span> <span class="v-val">{s}</span></div>
+      <div class="v-row"><span>cola</span> <span class="v-val">[s]</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 4 -->
+<div class="slide code-slide" id="sc4">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">4 / 8 — Bucle MIENTRAS</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp4">
+      <span class="line l14">  MIENTRAS cola ≠ ∅ Y ¬encontrado HACER</span>
+      <span class="line l15">    actual ← Desencolar(cola)</span>
+      <span class="line l16">    PARA CADA vecino DE Vecinos(G, actual)</span>
+      <span class="line l17 kw">  FIN MIENTRAS</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">BUCLE PRINCIPAL</h3>
+      <p class="animate">Condición de permanencia:</p>
+      <p class="animate"><span class="tag teal">cola ≠ ∅</span> Quedan nodos por explorar.</p>
+      <p class="animate"><span class="tag pink">¬encontrado</span> Aún no llegamos al destino.</p>
+      <div class="explain-note animate">Cota: <strong>|V| − |visitado|</strong>. Como el grafo es finito, el bucle debe terminar.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 5 -->
+<div class="slide code-slide" id="sc5">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">5 / 8 — Desencolar</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp5">
+      <span class="line l15">    actual ← Desencolar(cola)</span>
+      <span class="line l16">    PARA CADA vecino DE Vecinos(G, actual)</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">EXPANSIÓN</h3>
+      <p class="animate">Extraemos el frente de la cola (FIFO).</p>
+      <p class="animate">Por <strong>I₁</strong>, sabemos que <em>actual</em> es alcanzable desde el origen.</p>
+      <div class="explain-note animate">Procesaremos todos sus vecinos para descubrir el siguiente nivel.</div>
+    </div>
+    <div class="var-watch" id="vw5">
+      <div class="v-header">REGISTROS</div>
+      <div class="v-row"><span>actual</span> <span class="v-val">u_i</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 6 -->
+<div class="slide code-slide" id="sc6">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">6 / 8 — Filtrado</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp6">
+      <span class="line l18">      SI vecino ∉ visitado ENTONCES</span>
+      <span class="line l19">        Agregar(visitado, vecino)</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">CONTROL DE VISITAS</h3>
+      <p class="animate">Solo procesamos nodos que <strong>no</strong> hemos visto.</p>
+      <p class="animate">Evita ciclos y garantiza que cada nodo se encole máximo una vez.</p>
+      <p class="animate"><strong>I₁ se preserva:</strong> vecino es alcanzable vía actual.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 7 -->
+<div class="slide code-slide" id="sc7">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">7 / 8 — Hallazgo</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp7">
+      <span class="line l20">        SI vecino = t ENTONCES</span>
+      <span class="line l21">          encontrado ← Verdad</span>
+      <span class="line l22">        SINO</span>
+      <span class="line l23">          Encolar(cola, vecino)</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">DETECCIÓN DE META</h3>
+      <p class="animate">Detectamos <em>t</em> al encolar para mantener <strong>I₃</strong> consistente.</p>
+      <p class="animate">Si <em>vecino = t</em>, activamos la bandera. Si no, lo encolamos para explorar después.</p>
+    </div>
+    <div class="var-watch" id="vw7">
+      <div class="v-header">REGISTROS</div>
+      <div class="v-row"><span>encontrado</span> <span class="v-val">Verdad</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE SLIDE 8 -->
+<div class="slide code-slide" id="sc8">
+  <div class="code-slide-header">
+    <div class="pixel-title xs">CÓDIGO BFS: TRAZADO</div>
+    <div style="font-family:var(--pixel);font-size:14px;color:var(--teal)">8 / 8 — Postcondición</div>
+  </div>
+  <div class="code-slide-body">
+    <div class="code-pane" id="cp8">
+      <span class="line l24">  // ⟨ Postcondición Q ⟩</span>
+      <span class="line l25 kw">  RETORNAR encontrado</span>
+    </div>
+    <div class="explain-pane">
+      <h3 class="animate">RESULTADO FINAL</h3>
+      <p class="animate">El algoritmo termina. El resultado es infalible gracias a la demostración de los tres invariantes.</p>
+      <div class="explain-note animate"><strong>Q: encontrado = Verdad ⟺ Existe camino(s,t)</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- LÓGICA DE HOARE -->
+<div class="slide" id="s-hoare">
+  <div style="background:var(--dark);border-bottom:8px solid var(--pink);padding:40px 80px">
+    <div class="pixel-title pink animate">LÓGICA DE HOARE</div>
+  </div>
+  <div style="padding:40px 80px; text-align:center;">
+    <div class="animate" style="background:#001830;border:4px solid var(--teal);padding:35px;font-size:48px;color:var(--teal);font-family:var(--pixel);letter-spacing:25px">{ P } S { Q }</div>
+  </div>
+  <div class="agenda-body" style="padding-top:0">
+    <div class="card animate"><strong>{ P } Precondición:</strong> Requisitos iniciales válidos.</div>
+    <div class="card animate"><strong>S Programa:</strong> El algoritmo BFS completo.</div>
+    <div class="card animate"><strong>{ Q } Postcondición:</strong> Garantía de salida correcta.</div>
+  </div>
+</div>
+
+<!-- ESQUEMA HOARE -->
+<div class="slide" id="s-esquema-hoare">
+  <div style="background:var(--dark);border-bottom:8px solid var(--teal);padding:30px 60px">
+    <div class="pixel-title teal animate" style="font-size:28px">ESQUEMA VISUAL DE HOARE</div>
+  </div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:40px 80px;">
+    <div style="display:flex; align-items:center; gap:20px; width:100%;">
+      <div class="card animate" style="flex:1; text-align:center; border-color:var(--yellow);">
+        <div class="pixel-title yellow xs" style="margin-bottom:15px;">{ P }</div>
+        <div style="font-family:var(--mono); font-size:18px;">Precondición<br>G=(V,E), s,t ∈ V</div>
+      </div>
+      <div class="pixel-title animate" style="color:var(--white); font-size:40px;">➜</div>
+      <div class="card animate" style="flex:1.5; text-align:center; border-color:var(--teal); background:#001A10;">
+        <div class="pixel-title teal xs">PROGRAMA S</div>
+        <div style="font-size:14px; margin-top:10px;">[ INVARIANTES ]</div>
+      </div>
+      <div class="pixel-title animate" style="color:var(--white); font-size:40px;">➜</div>
+      <div class="card animate" style="flex:1; text-align:center; border-color:var(--pink);">
+        <div class="pixel-title pink xs">{ Q }</div>
+        <div style="font-family:var(--mono); font-size:18px;">Postcondición<br>encontrado ⟺ ∃ camino</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s-pq">
+  <div style="background:var(--dark);border-bottom:8px solid var(--teal);padding:30px 60px">
+    <div class="pixel-title teal animate" style="font-size:28px">PRECONDICIÓN Y POSTCONDICIÓN</div>
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:30px; padding:0 80px">
+    <div class="card animate" style="border-left-width:15px; border-left-color:var(--yellow)">
+      <strong>PRECONDICIÓN (P):</strong> Grafo G no dirigido ∧ Origen s ∧ Destino t ∈ V
+    </div>
+    <div class="card animate" style="border-left-width:15px; border-left-color:var(--teal)">
+      <strong>POSTCONDICIÓN (Q):</strong> encontrado = Verdad ⟺ Existe un camino de s a t
+    </div>
+    <p class="animate" style="text-align:center; color:var(--gray); font-size:18px;">Estamos demostrando que el algoritmo es tanto Correcto como Completo.</p>
+  </div>
+</div>
+
+<!-- INVARIANTE I1 -->
+<div class="slide inv-slide" id="s-i1">
+  <div class="inv-header">
+    <div class="inv-badge animate" style="background:var(--teal);color:var(--dark)">I₁</div>
+    <div class="pixel-title teal animate">I₁: ALCANZABILIDAD</div>
+  </div>
+  <div class="inv-statement animate">Todo vértice en <strong>visitado</strong> es alcanzable desde <strong>s</strong>.</div>
+  <div class="inv-panels">
+    <div class="inv-panel animate">
+      <div class="inv-panel-header">CASO BASE</div>
+      <div class="inv-panel-body">visitado = {s}. s es alcanzable desde s. I₁ ✓</div>
+    </div>
+    <div class="inv-panel alt animate">
+      <div class="inv-panel-header">PASO INDUCTIVO</div>
+      <div class="inv-panel-body">Si agregamos un vecino de un nodo que ya sabemos que es alcanzable, el nuevo nodo también lo es. ✓</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide inv-slide" id="s-i2">
+  <div class="inv-header">
+    <div class="inv-badge animate" style="background:var(--pink);color:var(--dark)">I₂</div>
+    <div class="pixel-title pink animate">I₂: COMPLETITUD</div>
+  </div>
+  <div class="inv-statement animate" style="border-color:var(--pink)">Si t es alcanzable → t ∈ visitado OR hay un camino a t desde la cola.</div>
+  <div class="inv-panels">
+    <div class="inv-panel animate" style="border-color:var(--pink)">
+      <div class="inv-panel-header" style="background:var(--pink)">CASO BASE</div>
+      <div class="inv-panel-body">Al inicio s está en la cola. Si hay camino a t, este camino comienza necesariamente en s. ✓</div>
+    </div>
+    <div class="inv-panel animate" style="border-color:var(--pink)">
+      <div class="inv-panel-header" style="background:var(--pink)">PASO INDUCTIVO</div>
+      <div class="inv-panel-body">Al explorar el nodo al frente de la cola, "pasamos la antorcha" a sus vecinos no visitados. ✓</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide inv-slide" id="s-i3">
+  <div class="inv-header">
+    <div class="inv-badge animate" style="background:var(--yellow);color:var(--dark)">I₃</div>
+    <div class="pixel-title animate">I₃: CONSISTENCIA</div>
+  </div>
+  <div class="inv-statement animate" style="border-color:var(--yellow)">encontrado = Verdad ⟺ t ha sido visitado</div>
+  <div class="inv-panels">
+    <div class="inv-panel animate">
+      <div class="inv-panel-header">CASO BASE</div>
+      <div class="inv-panel-body">Inicialmente encontrado = Falso y t ∉ visitado. F ⟺ F es Verdad. ✓</div>
+    </div>
+    <div class="inv-panel animate">
+      <div class="inv-panel-header">INDUCCIÓN</div>
+      <div class="inv-panel-body">Solo cambiamos encontrado a Verdad en el preciso instante en que añadimos t a visitado. ✓</div>
+    </div>
+  </div>
+</div>
+
+<!-- PASO INDUCTIVO -->
+<div class="slide" id="s-inductivo">
+  <div style="background:var(--dark);border-bottom:8px solid var(--yellow);padding:30px 60px">
+    <div class="pixel-title animate" style="font-size:28px">EL PASO INDUCTIVO</div>
+  </div>
+  <div style="flex:1; display:flex; gap:30px; padding:40px 80px">
+    <div class="card animate" style="flex:1; background:#001A10; color:var(--white); border-color:var(--teal)">
+      <div class="pixel-title teal xs">CASO A: vecino ≠ t</div>
+      <p style="margin-top:20px; font-size:18px;">El algoritmo continúa expandiendo la frontera de búsqueda sin afectar el objetivo final.</p>
+    </div>
+    <div class="card animate" style="flex:1; background:#1A0010; color:var(--white); border-color:var(--pink)">
+      <div class="pixel-title pink xs">CASO B: vecino = t</div>
+      <p style="margin-top:20px; font-size:18px;">Se alcanza el éxito, se activa la bandera y el bucle detecta la terminación.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SIMULADOR BFS: BIFURCACIÓN DE CONTROL CANÓNICA -->
+<div class="slide" id="s-simulador">
+  <div style="background:var(--dark); border-bottom:8px solid var(--teal); padding:20px 60px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+    <div class="pixel-title teal animate" style="font-size:20px">SIMULADOR: BIFURCACIÓN DE CONTROL</div>
+    <div style="display:flex; gap:15px;">
+      <button class="nav-btn" id="btn-sim-next" onclick="runSimStep()" style="font-size:10px; padding:10px 18px; background:var(--teal); color:var(--dark); border-color:var(--teal);">[ EJECUTAR SIGUIENTE PASO ]</button>
+      <button class="nav-btn" onclick="resetSim()" style="font-size:10px; padding:10px 18px;">[ REINICIAR ]</button>
+    </div>
+  </div>
+  
+  <div style="flex:1; position:relative; background:#0A0A0A; display:flex; flex-direction:column; overflow:hidden; border:4px solid #111;">
+    
+    <!-- Lienzo del Grafo -->
+    <div style="position:relative; width:900px; height:320px; margin: 0 auto; margin-top:20px;">
+      <!-- SVG de Aristas -->
+      <svg style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+        <line id="l-s-b" x1="82" y1="150" x2="312" y2="52"  stroke="#333" stroke-width="4" />
+        <line id="l-s-c" x1="82" y1="150" x2="312" y2="248" stroke="#333" stroke-width="4" />
+        <line id="l-b-d" x1="312" y1="52"  x2="542" y2="52"  stroke="#333" stroke-width="4" />
+        <line id="l-c-t" x1="312" y1="248" x2="772" y2="150" stroke="#333" stroke-width="4" />
+        <line id="l-d-t" x1="542" y1="52"  x2="772" y2="150" stroke="#333" stroke-width="4" />
+      </svg>
+      
+      <!-- Nodos Fijos -->
+      <div id="sn-s" class="sim-node" style="left:50px;  top:118px;">s(A)</div>
+      <div id="sn-b" class="sim-node" style="left:280px; top:20px;">B</div>
+      <div id="sn-c" class="sim-node" style="left:280px; top:216px;">C</div>
+      <div id="sn-d" class="sim-node" style="left:510px; top:20px;">D</div>
+      <div id="sn-t" class="sim-node" style="left:740px; top:118px;">t(E)</div>
+
+      <!-- Cola FIFO Visual -->
+      <div id="cola-fifo-display" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); width:400px; height:60px; border:3px dashed var(--yellow); background:rgba(255,215,0,0.05); display:flex; align-items:center; justify-content:center; gap:10px; padding:10px;">
+        <!-- Elementos generados por JS -->
+      </div>
+
+      <!-- Sim Popup -->
+      <div id="sim-popup" style="display:none; position:absolute; top:20px; left:50%; transform:translateX(-50%); width:600px; background:var(--black); border:4px solid var(--pink); padding:20px; z-index:100; box-shadow:0 0 40px var(--pink); text-align:center;">
+        <div style="font-family:var(--pixel); color:var(--pink); font-size:12px; margin-bottom:10px;">¡DEMOSTRACIÓN DE CORECTITUD Y OPTIMALIDAD!</div>
+        <p style="font-family:var(--mono); font-size:16px; line-height:1.4;">
+          1. <span style="color:var(--teal)">OPTIMALIDAD:</span> HALLAMOS T VÍA C A DISTANCIA 2, DESCARTANDO PROCESAR LA RAMA LARGA D (DISTANCIA 3).<br>
+          2. <span style="color:var(--yellow)">LOGICA DE HOARE:</span> T ENTRÓ A VISITADO Y ENCONTRADO CAMBIÓ A VERDAD SIMULTÁNEAMENTE AL ENCOLAR. EL INVARIANTE I₃ SE PRESERVÓ CONSISTENTE (V ⟺ V).
+        </p>
+      </div>
+    </div>
+
+    <!-- Panel Inferior -->
+    <div style="height:150px; background:var(--black); border-top:4px solid var(--yellow); display:flex; padding:15px 50px; gap:30px; flex-shrink:0;">
+      <div style="flex:2; font-family:var(--mono); font-size:20px; color:var(--white); display:flex; flex-direction:column; justify-content:center; gap:5px;">
+        <div><span style="color:var(--gray);">visitado =</span> <span id="sv-vis" style="color:var(--yellow);">{s(A)}</span></div>
+        <div><span style="color:var(--gray);">cola     =</span> <span id="sv-cola" style="color:var(--teal);">[s(A)]</span></div>
+        <div><span style="color:var(--gray);">encontrado =</span> <span id="sv-enc" style="color:var(--pink);">Falso</span></div>
+      </div>
+      <div style="flex:1; border-left:4px dashed #222; padding-left:30px; display:flex; flex-direction:column; justify-content:center; gap:8px;">
+        <div id="sl-i1" style="font-family:var(--pixel); font-size:10px; color:var(--gray);">● I1 Alcanzabilidad</div>
+        <div id="sl-i2" style="font-family:var(--pixel); font-size:10px; color:var(--gray);">● I2 Completitud</div>
+        <div id="sl-i3" style="font-family:var(--pixel); font-size:10px; color:var(--gray);">● I3 Consistencia</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TERMINACION -->
+<div class="slide" id="s-terminacion">
+  <div style="background:var(--dark);border-bottom:8px solid var(--teal);padding:40px 80px">
+    <div class="pixel-title teal animate" style="font-size:36px">TERMINACIÓN</div>
+  </div>
+  <div style="padding:40px 80px; overflow-y:auto; flex:1;">
+    <div class="card animate" style="text-align:center; font-family:var(--pixel); font-size:26px; background:var(--dark); color:var(--teal); border-color:var(--teal);">f = |V| − |visitado|</div>
+    <div style="margin-top:40px; display:flex; flex-direction:column; gap:20px">
+      <div class="agenda-item animate">f es un entero no negativo (cota inferior).</div>
+      <div class="agenda-item animate">f decrece estrictamente en cada inserción a visitado.</div>
+      <div class="agenda-item animate">Como el número de vértices es finito, el bucle debe terminar. ∎</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRUEBA FORMAL -->
+<div class="slide" id="s-prueba">
+  <div style="background:var(--dark);border-bottom:8px solid var(--pink);padding:30px 60px">
+    <div class="pixel-title pink animate">RESUMEN DE LA PRUEBA</div>
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:15px; padding:20px 80px; overflow-y:auto;">
+    <div class="agenda-item animate">1. P asegura que el problema está bien definido.</div>
+    <div class="agenda-item animate">2. Los Invariantes capturan la lógica interna del algoritmo.</div>
+    <div class="agenda-item animate">3. La inducción prueba que el algoritmo nunca miente.</div>
+    <div class="agenda-item animate">4. La función de cota asegura que no se ejecuta por siempre.</div>
+    <div class="agenda-item animate">5. Al final, la validez de los invariantes implica Q. ✓</div>
+  </div>
+</div>
+
+<!-- COMPARACION -->
+<div class="slide" id="s-comparacion">
+  <div style="background:var(--dark);border-bottom:8px solid var(--yellow);padding:40px 80px">
+    <div class="pixel-title animate" style="font-size:28px">HOARE vs INDUCCIÓN CLÁSICA</div>
+  </div>
+  <div style="padding:40px 80px; flex:1; display:flex; align-items:center; overflow-x:auto;">
+    <table class="cmp-table animate">
+      <tr><th>Atributo</th><th>Enfoque Clásico</th><th>Enfoque Hoare</th></tr>
+      <tr><td>Base</td><td>Distancia d(s,v)</td><td>Estado del programa</td></tr>
+      <tr><td>Herramienta</td><td>Lógica Matemática</td><td>Lógica de Programación</td></tr>
+      <tr><td>Resultado</td><td>Demostración teórica</td><td>Software Verificado</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- VENTAJAS -->
+<div class="slide" id="s-ventajas">
+  <div style="background:var(--dark);border-bottom:8px solid var(--pink);padding:30px 60px">
+    <div class="pixel-title pink animate">¿POR QUÉ VERIFICAR FORMALMENTE?</div>
+  </div>
+  <div class="agenda-body" style="overflow-y:auto;">
+    <div class="card animate"><strong>Seguridad Crítica:</strong> Para sistemas donde el error no es una opción.</div>
+    <div class="card animate"><strong>Claridad de Diseño:</strong> Nos obliga a entender cada línea.</div>
+    <div class="card animate"><strong>Garantía Total:</strong> Prueba para infinitos casos a la vez.</div>
+    <div class="card animate"><strong>Documentación Viva:</strong> Los invariantes son la mejor explicación.</div>
+  </div>
+</div>
+
+<!-- CONCLUSION -->
+<div class="slide" id="s-conclusion">
+  <div class="corner-tl"></div>
+  <div class="corner-tr"></div>
+  <div class="corner-bl"></div>
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:60px;">
+    <div class="pixel-title animate" style="font-size:48px; margin-bottom:40px;">CONCLUSIÓN</div>
+    <div class="card animate" style="width:900px; position:relative; z-index:10;">
+      <p style="margin-bottom:20px">✓ BFS es un pilar de la computación cuya corrección es absoluta.</p>
+      <p style="margin-bottom:20px">✓ La lógica de Hoare nos permite dormir tranquilos sabiendo que el código funciona.</p>
+      <p style="margin-bottom:20px">✓ La verificación formal es la frontera final de la ingeniería de software.</p>
+      <div style="text-align:right; font-family:var(--pixel); font-size:14px; color:var(--gray); margin-top:30px;">[ FIN GRUPO #1 ]</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /scaler -->
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nav-btn" id="btn-prev" onclick="prevSlide()" disabled>◀ PREV</button>
+  <span id="slide-counter">1 / 25</span>
+  <button class="nav-btn" id="btn-next" onclick="nextSlide()">NEXT ▶</button>
+</div>
+
+<script>
+const SLIDE_IDS = [
+  's1','s2','s3','s4',
+  'sc1','sc2','sc3','sc4','sc5','sc6','sc7','sc8',
+  's-hoare','s-esquema-hoare','s-pq','s-i1','s-i2','s-i3',
+  's-inductivo','s-simulador','s-terminacion','s-prueba',
+  's-comparacion','s-ventajas','s-conclusion'
+];
+
+let cur = 0;
+const slides = SLIDE_IDS.map(id => document.getElementById(id));
+const total = slides.length;
+
+function show(idx, direction = 1) {
+  const oldIdx = cur;
+  cur = idx;
+  
+  const oldSlide = slides[oldIdx];
+  const newSlide = slides[idx];
+  
+  // Limpieza de slides residuales para navegación rápida, evitando tocar oldSlide y newSlide
+  slides.forEach((s, i) => {
+    if (i !== oldIdx && i !== idx) {
+      gsap.killTweensOf(s);
+      s.classList.remove('active');
+      gsap.set(s, { clearProps: "all" });
+    }
+  });
+
+  if (oldSlide && oldSlide !== newSlide) {
+    gsap.killTweensOf(oldSlide);
+    gsap.to(oldSlide, {
+      y: direction > 0 ? -200 : 200,
+      opacity: 0,
+      rotateX: direction > 0 ? 15 : -15,
+      duration: 0.6,
+      ease: "power2.inOut",
+      onComplete: () => {
+        // Solo quitamos la clase si no es la actual (evita bugs por click rápido)
+        if (cur !== oldIdx) {
+          oldSlide.classList.remove('active');
+          gsap.set(oldSlide, { clearProps: "all" });
+        }
+      }
+    });
+  }
+
+  newSlide.classList.add('active');
+  gsap.killTweensOf(newSlide);
+  gsap.fromTo(newSlide, 
+    { y: direction > 0 ? 200 : -200, opacity: 0, rotateX: direction > 0 ? -15 : 15 },
+    { y: 0, opacity: 1, rotateX: 0, duration: 0.7, ease: "power2.out", delay: 0.1 }
+  );
+
+  const anims = newSlide.querySelectorAll('.animate');
+  gsap.killTweensOf(anims);
+  gsap.fromTo(anims, 
+    { y: 30, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.4)", delay: 0.4 }
+  );
+
+  if (SLIDE_IDS[idx].startsWith('sc')) {
+    const codeLines = newSlide.querySelectorAll('.line');
+    const varWatch = newSlide.querySelector('.var-watch');
+    
+    gsap.set(codeLines, { backgroundColor: "transparent", color: "#CCC" });
+    if (varWatch) gsap.set(varWatch, { display: "block", opacity: 0, y: 20 });
+
+    const activeLineClass = 'l' + (idx - SLIDE_IDS.indexOf('sc1') + 1);
+    let activeLines;
+    if (idx === SLIDE_IDS.indexOf('sc1')) {
+      activeLines = newSlide.querySelectorAll('.l1, .l2, .l3');
+    } else {
+      activeLines = newSlide.querySelectorAll('.' + activeLineClass);
+    }
+
+    gsap.killTweensOf(activeLines);
+    activeLines.forEach(l => l.classList.remove('executing'));
+    const tl = gsap.timeline({ delay: 0.8 });
+    tl.to(activeLines, {
+      backgroundColor: "rgba(57, 255, 20, 0.25)",
+      color: "var(--green)",
+      duration: 0.4,
+      stagger: 0.1,
+      ease: "power2.inOut",
+      onStart: () => activeLines.forEach(l => l.classList.add('executing')),
+      onComplete: () => activeLines.forEach(l => l.classList.remove('executing'))
+    });
+    if (varWatch) {
+      gsap.killTweensOf(varWatch);
+      tl.to(varWatch, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.7)" }, "-=0.2");
+    }
+  }
+
+  if (SLIDE_IDS[idx] === 's-simulador') {
+    resetSim();
+  }
+
+  document.getElementById('slide-counter').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('progress-bar').style.width = `${((idx + 1) / total) * 100}%`;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur === total - 1;
+}
+
+function nextSlide() { if (cur < total - 1) { show(cur + 1, 1); } }
+function prevSlide() { if (cur > 0) { show(cur - 1, -1); } }
+
+function goToSlideById(id) {
+  const idx = SLIDE_IDS.indexOf(id);
+  if (idx !== -1 && idx !== cur) {
+    show(idx, idx > cur ? 1 : -1);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')  { e.preventDefault(); prevSlide(); }
+});
+
+// ════════════════════════════════════════
+//   SIMULADOR LOGIC
+// ════════════════════════════════════════
+let simStep = 0;
+function updateQueueUI(items) {
+  const container = document.getElementById('cola-fifo-display');
+  container.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.style.cssText = "background:var(--teal); color:var(--dark); padding:5px 12px; font-family:var(--pixel); font-size:12px; border:2px solid var(--white);";
+    div.innerText = item; container.appendChild(div);
+    gsap.from(div, { scale: 0, duration: 0.3, ease: "back.out(2)" });
+  });
+}
+
+function runSimStep() {
+  simStep++;
+  const vis = document.getElementById('sv-vis');
+  const col = document.getElementById('sv-cola');
+  const enc = document.getElementById('sv-enc');
+  
+  if (simStep === 1) {
+    gsap.to('#sn-s', { backgroundColor: '#222', color: '#666', borderColor: '#444' });
+    gsap.to(['#sn-b', '#sn-c'], { borderColor: 'var(--teal)', boxShadow: '0 0 20px var(--teal)' });
+    gsap.to(['#l-s-b', '#l-s-c'], { stroke: 'var(--teal)', strokeWidth: 6 });
+    vis.innerText = '{s(A), B, C}'; col.innerText = '[B, C]';
+    updateQueueUI(['B', 'C']);
+    gsap.set(['#sl-i1', '#sl-i2', '#sl-i3'], { color: 'var(--green)' });
+  } else if (simStep === 2) {
+    gsap.to('#sn-b', { backgroundColor: '#222', color: '#666', borderColor: '#444' });
+    gsap.to('#sn-d', { borderColor: 'var(--teal)', boxShadow: '0 0 20px var(--teal)' });
+    gsap.to('#l-b-d', { stroke: 'var(--teal)', strokeWidth: 6 });
+    vis.innerText = '{s(A), B, C, D}'; col.innerText = '[C, D]';
+    updateQueueUI(['C', 'D']);
+  } else if (simStep === 3) {
+    gsap.to('#sn-c', { backgroundColor: '#222', color: '#666' });
+    gsap.to('#l-c-t', { stroke: 'var(--pink)', strokeWidth: 8, duration: 0.1, repeat: 6, yoyo: true });
+    gsap.to('#sn-t', { borderColor: 'var(--pink)', boxShadow: '0 0 40px var(--pink)', color: 'var(--pink)' });
+    vis.innerText = '{s(A), B, C, D, t(E)}'; col.innerText = '[D, t(E)]';
+    enc.innerText = 'Verdad'; enc.style.color = 'var(--green)';
+    updateQueueUI(['D', 't(E)']);
+    document.getElementById('sim-popup').style.display = 'block';
+    document.getElementById('btn-sim-next').disabled = true;
+  }
+}
+
+function resetSim() {
+  simStep = 0; document.getElementById('btn-sim-next').disabled = false;
+  document.getElementById('sim-popup').style.display = 'none';
+  ['s', 'b', 'c', 'd', 't'].forEach(n => { gsap.set('#sn-' + n, { clearProps: "all" }); });
+  document.getElementById('sn-s').classList.add('active-s');
+  gsap.set(['#l-s-b', '#l-s-c', '#l-b-d', '#l-c-t', '#l-d-t'], { stroke: '#333', strokeWidth: 4 });
+  document.getElementById('sv-vis').innerText = '{s(A)}';
+  document.getElementById('sv-cola').innerText = '[s(A)]';
+  document.getElementById('sv-enc').innerText = 'Falso';
+  document.getElementById('sv-enc').style.color = 'var(--pink)';
+  gsap.set(['#sl-i1', '#sl-i2', '#sl-i3'], { color: 'var(--gray)' });
+  updateQueueUI(['s(A)']);
+}
+
+async function exportToPPTX() {
+  const overlay = document.getElementById('export-overlay');
+  const status = document.getElementById('export-status');
+  const progress = document.getElementById('export-progress');
+  overlay.style.display = 'flex';
+  
+  const pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_WIDE';
+  
+  const scaler = document.getElementById('scaler');
+  const originalTransform = scaler.style.transform;
+  scaler.style.transform = 'none';
+
+  for (let i = 0; i < SLIDE_IDS.length; i++) {
+    status.innerText = `Capturando slide ${i+1}/${total}...`;
+    progress.style.width = `${((i + 1) / total) * 100}%`;
+    
+    // Quitar clases active de todo y ponerla solo a la actual para captura
+    slides.forEach(s => s.classList.remove('active'));
+    slides[i].classList.add('active');
+    
+    // Forzar opacidad sin usar inline styles que rompan el DOM
+    const anims = slides[i].querySelectorAll('.animate');
+    gsap.set(slides[i], { clearProps: "opacity,transform" });
+    gsap.set(anims, { opacity: 1, y: 0 });
+
+    const canvas = await html2canvas(slides[i], { scale: 2, backgroundColor: '#0A0A0A', logging: false });
+    pptx.addSlide().addImage({ data: canvas.toDataURL('image/png'), x: 0, y: 0, w: '100%', h: '100%' });
+  }
+
+  // Devolver estado a la diapositiva actual
+  slides.forEach(s => s.classList.remove('active'));
+  slides[cur].classList.add('active');
+  scaler.style.transform = originalTransform;
+  
+  status.innerText = 'Finalizando...';
+  await pptx.writeFile({ fileName: `BFS_Hoare_Grupo1.pptx` });
+  overlay.style.display = 'none';
+}
+
+function scaleSlides() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const scale = Math.min(vw / 1280, vh / 720) * 0.95;
+  document.getElementById('scaler').style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', scaleSlides);
+scaleSlides();
+show(0);
+resetSim();
+</script>
+</body>
+</html>
