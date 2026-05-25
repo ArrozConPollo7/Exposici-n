@@ -172,7 +172,7 @@ html, body {
 /* ════════════════════════════════════════
    SLIDE 1 — PORTADA
 ═══════════════════════════════════════ */
-#s1 { justify-content: center; align-items: center; padding-bottom: 0; }
+#s1 { justify-content: center; align-items: center; }
 .monitor-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
 .monitor-body { background: var(--teal); padding: 15px; border-radius: 15px 15px 0 0; position: relative; box-shadow: 0 12px 0 #008ba3; }
 .monitor-screen { background: #050505; width: 420px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 10px solid #222; position: relative; overflow: hidden; }
@@ -294,12 +294,149 @@ html, body {
 /* ════════════════════════════════════════
    ANIMATION CLASSES
 ═══════════════════════════════════════ */
+/* ════════════════════════════════════════
+   MENU
+═══════════════════════════════════════ */
+#menu-toggle {
+  position: fixed; top: 30px; right: 30px;
+  width: 50px; height: 50px;
+  background: rgba(10,10,10,0.8);
+  border: 2px solid var(--teal);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 500;
+  color: var(--teal); font-family: var(--pixel); font-size: 20px;
+  transition: all 0.3s;
+}
+#menu-toggle:hover { background: var(--teal); color: var(--dark); box-shadow: 0 0 20px var(--teal); }
+
+#menu-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9);
+  z-index: 450; display: none;
+  backdrop-filter: blur(10px);
+}
+
+#side-menu {
+  position: fixed; top: 0; right: -400px; width: 400px; height: 100%;
+  background: var(--black); border-left: 4px solid var(--teal);
+  z-index: 550; padding: 60px 30px;
+  overflow-y: auto; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#side-menu.open { right: 0; }
+
+.menu-section { margin-bottom: 25px; }
+.menu-section-title {
+  font-family: var(--pixel); font-size: 14px; color: var(--yellow);
+  padding: 10px 0; border-bottom: 2px solid rgba(255,215,0,0.3);
+  margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between;
+}
+.menu-section-title::after { content: '▼'; font-size: 10px; transition: transform 0.3s; }
+.menu-section.collapsed .menu-section-title::after { transform: rotate(-90deg); }
+
+.menu-items { overflow: hidden; transition: max-height 0.4s ease; max-height: 500px; }
+.menu-section.collapsed .menu-items { max-height: 0; }
+
+.menu-item {
+  font-family: var(--mono); font-size: 16px; color: var(--white);
+  padding: 8px 15px; cursor: pointer; border-radius: 4px;
+  transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+}
+.menu-item:hover { background: rgba(0,188,212,0.15); color: var(--teal); }
+.menu-item.active { background: var(--teal); color: var(--dark); font-weight: bold; }
+.menu-item .m-num { font-family: var(--pixel); font-size: 10px; opacity: 0.6; width: 25px; }
+
+/* ════════════════════════════════════════
+   RESPONSIVE ADJUSTMENTS
+═══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  #scaler { transform: scale(0.8) !important; }
+}
+@media (max-width: 768px) {
+  #scaler { transform: scale(0.6) !important; }
+  #nav { bottom: 15px; padding: 8px 16px; gap: 10px; width: 90%; justify-content: space-between; }
+  .nav-btn { padding: 8px 12px; font-size: 9px; }
+  #slide-counter { font-size: 9px; min-width: 100px; }
+  #menu-toggle { top: 15px; right: 15px; width: 40px; height: 40px; font-size: 16px; }
+  #side-menu { width: 100%; right: -100%; }
+}
+@media (max-width: 480px) {
+  #scaler { transform: scale(0.35) !important; }
+}
+
 .animate { opacity: 0; }
 </style>
 </head>
 <body>
 
 <div id="progress-wrap"><div id="progress-bar"></div></div>
+
+<div id="menu-toggle" onclick="toggleMenu()">☰</div>
+<div id="menu-overlay" onclick="toggleMenu()"></div>
+<div id="side-menu">
+  <div class="pixel-title yellow xs" style="margin-bottom: 40px; text-align: center;">ÍNDICE</div>
+  
+  <div class="menu-section">
+    <div class="menu-section-title" onclick="toggleSection(this.parentElement)">01. INTRODUCCIÓN</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="goToSlideById('s1')"><span class="m-num">01</span> Portada</div>
+      <div class="menu-item" onclick="goToSlideById('s2')"><span class="m-num">02</span> Agenda</div>
+      <div class="menu-item" onclick="goToSlideById('s3')"><span class="m-num">03</span> El Problema</div>
+      <div class="menu-item" onclick="goToSlideById('s4')"><span class="m-num">04</span> BFS vs DFS</div>
+    </div>
+  </div>
+
+  <div class="menu-section collapsed">
+    <div class="menu-section-title" onclick="toggleSection(this.parentElement)">02. ALGORITMO</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="goToSlideById('sc1')"><span class="m-num">05</span> Trazado 1: Precondición</div>
+      <div class="menu-item" onclick="goToSlideById('sc2')"><span class="m-num">06</span> Trazado 2: Inicialización</div>
+      <div class="menu-item" onclick="goToSlideById('sc3')"><span class="m-num">07</span> Trazado 3: Punto de Partida</div>
+      <div class="menu-item" onclick="goToSlideById('sc4')"><span class="m-num">08</span> Trazado 4: Bucle MIENTRAS</div>
+      <div class="menu-item" onclick="goToSlideById('sc5')"><span class="m-num">09</span> Trazado 5: Desencolar</div>
+      <div class="menu-item" onclick="goToSlideById('sc6')"><span class="m-num">10</span> Trazado 6: Filtrado</div>
+      <div class="menu-item" onclick="goToSlideById('sc7')"><span class="m-num">11</span> Trazado 7: Hallazgo</div>
+      <div class="menu-item" onclick="goToSlideById('sc8')"><span class="m-num">12</span> Trazado 8: Postcondición</div>
+    </div>
+  </div>
+
+  <div class="menu-section collapsed">
+    <div class="menu-section-title" onclick="toggleSection(this.parentElement)">03. LÓGICA DE HOARE</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="goToSlideById('s-hoare')"><span class="m-num">13</span> {P} S {Q}</div>
+      <div class="menu-item" onclick="goToSlideById('s-esquema-hoare')"><span class="m-num">14</span> Esquema Visual</div>
+      <div class="menu-item" onclick="goToSlideById('s-pq')"><span class="m-num">15</span> P y Q Detalle</div>
+    </div>
+  </div>
+
+  <div class="menu-section collapsed">
+    <div class="menu-section-title" onclick="toggleSection(this.parentElement)">04. INVARIANTES</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="goToSlideById('s-i1')"><span class="m-num">16</span> I₁: Alcanzabilidad</div>
+      <div class="menu-item" onclick="goToSlideById('s-i2')"><span class="m-num">17</span> I₂: Completitud</div>
+      <div class="menu-item" onclick="goToSlideById('s-i3')"><span class="m-num">18</span> I₃: Consistencia</div>
+      <div class="menu-item" onclick="goToSlideById('s-inductivo')"><span class="m-num">19</span> Paso Inductivo</div>
+    </div>
+  </div>
+
+  <div class="menu-section collapsed">
+    <div class="menu-section-title" onclick="toggleSection(this.parentElement)">05. VERIFICACIÓN FINAL</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="goToSlideById('s-simulador')"><span class="m-num">20</span> Simulador</div>
+      <div class="menu-item" onclick="goToSlideById('s-terminacion')"><span class="m-num">21</span> Terminación</div>
+      <div class="menu-item" onclick="goToSlideById('s-prueba')"><span class="m-num">22</span> Resumen de Prueba</div>
+    </div>
+  </div>
+
+  <div class="menu-section collapsed">
+    <div class="menu-section-title" onclick="toggleSection(this.parentElement)">06. CONCLUSIÓN</div>
+    <div class="menu-items">
+      <div class="menu-item" onclick="goToSlideById('s-comparacion')"><span class="m-num">23</span> Comparación</div>
+      <div class="menu-item" onclick="goToSlideById('s-ventajas')"><span class="m-num">24</span> Ventajas</div>
+      <div class="menu-item" onclick="goToSlideById('s-conclusion')"><span class="m-num">25</span> Conclusión</div>
+    </div>
+  </div>
+</div>
 
 <div id="deck">
 <div id="scaler">
@@ -342,11 +479,6 @@ html, body {
       SALOMÉ BEDOYA ECHAVARRÍA<br>
       JUAN DAVID GIRALDO REGINO<br>
       CLAUDIA YESENIA CASTAÑO QUINTERO
-    </div>
-    <div class="animate" style="margin-top: 35px;">
-      <a href="BFS_Hoare_Presentacion.pptx" download="BFS_Hoare_Grupo1.pptx" class="nav-btn" style="text-decoration:none; display:inline-block; font-size:12px; padding:12px 24px; border-color:var(--teal); color:var(--teal);">
-        📥 DESCARGAR PPTX (Respaldo)
-      </a>
     </div>
   </div>
 </div>
@@ -761,62 +893,69 @@ html, body {
 
 <!-- SIMULADOR BFS: BIFURCACIÓN DE CONTROL CANÓNICA -->
 <div class="slide" id="s-simulador">
-  <div style="background:var(--dark); border-bottom:8px solid var(--teal); padding:20px 60px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-    <div class="pixel-title teal animate" style="font-size:20px">SIMULADOR: BIFURCACIÓN DE CONTROL</div>
-    <div style="display:flex; gap:15px;">
-      <button class="nav-btn" id="btn-sim-next" onclick="runSimStep()" style="font-size:10px; padding:10px 18px; background:var(--teal); color:var(--dark); border-color:var(--teal);">[ EJECUTAR SIGUIENTE PASO ]</button>
-      <button class="nav-btn" onclick="resetSim()" style="font-size:10px; padding:10px 18px;">[ REINICIAR ]</button>
+  <div style="background:var(--dark);border-bottom:8px solid var(--teal);padding:20px 60px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+    <div class="pixel-title teal" style="font-size:24px;">SIMULADOR: BIFURCACIÓN DE CONTROL</div>
+    <div style="display:flex; gap:10px;">
+      <button class="nav-btn" onclick="runSimStep()" style="font-size:12px; padding:10px 20px; background:var(--teal); color:var(--dark); border-color:var(--teal);">[ EJECUTAR SIGUIENTE PASO ]</button>
+      <button class="nav-btn" onclick="resetSim()" style="font-size:12px; padding:10px 20px;">[ REINICIAR ]</button>
     </div>
   </div>
-  
-  <div style="flex:1; position:relative; background:#0A0A0A; display:flex; flex-direction:column; overflow:hidden; border:4px solid #111;">
+  <div style="flex:1; position:relative; background:#050505; display:flex; flex-direction:column; overflow:hidden;">
     
-    <!-- Lienzo del Grafo -->
-    <div style="position:relative; width:900px; height:320px; margin: 0 auto; margin-top:20px;">
-      <!-- SVG de Aristas -->
-      <svg style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
-        <line id="l-s-b" x1="82" y1="150" x2="312" y2="52"  stroke="#333" stroke-width="4" />
-        <line id="l-s-c" x1="82" y1="150" x2="312" y2="248" stroke="#333" stroke-width="4" />
-        <line id="l-b-d" x1="312" y1="52"  x2="542" y2="52"  stroke="#333" stroke-width="4" />
-        <line id="l-c-t" x1="312" y1="248" x2="772" y2="150" stroke="#333" stroke-width="4" />
-        <line id="l-d-t" x1="542" y1="52"  x2="772" y2="150" stroke="#333" stroke-width="4" />
-      </svg>
-      
-      <!-- Nodos Fijos -->
-      <div id="sn-s" class="sim-node" style="left:50px;  top:118px;">s(A)</div>
-      <div id="sn-b" class="sim-node" style="left:280px; top:20px;">B</div>
-      <div id="sn-c" class="sim-node" style="left:280px; top:216px;">C</div>
-      <div id="sn-d" class="sim-node" style="left:510px; top:20px;">D</div>
-      <div id="sn-t" class="sim-node" style="left:740px; top:118px;">t(E)</div>
-
-      <!-- Cola FIFO Visual -->
-      <div id="cola-fifo-display" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); width:400px; height:60px; border:3px dashed var(--yellow); background:rgba(255,215,0,0.05); display:flex; align-items:center; justify-content:center; gap:10px; padding:10px;">
-        <!-- Elementos generados por JS -->
-      </div>
-
-      <!-- Sim Popup -->
-      <div id="sim-popup" style="display:none; position:absolute; top:20px; left:50%; transform:translateX(-50%); width:600px; background:var(--black); border:4px solid var(--pink); padding:20px; z-index:100; box-shadow:0 0 40px var(--pink); text-align:center;">
-        <div style="font-family:var(--pixel); color:var(--pink); font-size:12px; margin-bottom:10px;">¡DEMOSTRACIÓN DE CORECTITUD Y OPTIMALIDAD!</div>
-        <p style="font-family:var(--mono); font-size:16px; line-height:1.4;">
-          1. <span style="color:var(--teal)">OPTIMALIDAD:</span> HALLAMOS T VÍA C A DISTANCIA 2, DESCARTANDO PROCESAR LA RAMA LARGA D (DISTANCIA 3).<br>
-          2. <span style="color:var(--yellow)">LOGICA DE HOARE:</span> T ENTRÓ A VISITADO Y ENCONTRADO CAMBIÓ A VERDAD SIMULTÁNEAMENTE AL ENCOLAR. EL INVARIANTE I₃ SE PRESERVÓ CONSISTENTE (V ⟺ V).
-        </p>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:20px;">
+      <div style="position:relative; width:900px; height:300px; background:var(--dark); border:4px solid #333; border-radius:10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
+        
+        <svg style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#444" id="m-path" />
+            </marker>
+            <marker id="arrow-teal" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#00BCD4" />
+            </marker>
+            <marker id="arrow-pink" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF4081" />
+            </marker>
+          </defs>
+          <line x1="82" y1="150" x2="312" y2="52" stroke="#444" stroke-width="4" id="l-s-b" marker-end="url(#arrow)"/>
+          <line x1="82" y1="150" x2="312" y2="248" stroke="#444" stroke-width="4" id="l-s-c" marker-end="url(#arrow)"/>
+          <line x1="312" y1="52" x2="542" y2="52" stroke="#444" stroke-width="4" id="l-b-d" marker-end="url(#arrow)"/>
+          <line x1="312" y1="248" x2="772" y2="150" stroke="#444" stroke-width="4" id="l-c-t" marker-end="url(#arrow)"/>
+          <line x1="542" y1="52" x2="772" y2="150" stroke="#444" stroke-width="4" id="l-d-t" marker-end="url(#arrow)"/>
+        </svg>
+        
+        <div id="sim-node-s" class="sim-node active-s" style="position:absolute; left:50px; top:118px; z-index:10;">s(A)</div>
+        <div id="sim-node-b" class="sim-node" style="position:absolute; left:280px; top:20px; z-index:10;">B</div>
+        <div id="sim-node-c" class="sim-node" style="position:absolute; left:280px; top:216px; z-index:10;">C</div>
+        <div id="sim-node-d" class="sim-node" style="position:absolute; left:510px; top:20px; z-index:10;">D</div>
+        <div id="sim-node-t" class="sim-node" style="position:absolute; left:740px; top:118px; z-index:10;">t(E)</div>
+        
+        <div id="sim-popup" style="display:none; position:absolute; top:20px; left:50%; transform:translateX(-50%); width:650px; background:rgba(10,10,10,0.95); color:var(--white); border:4px solid var(--pink); padding:20px; font-family:var(--mono); font-size:16px; z-index:50; box-shadow:0 0 30px rgba(255,64,129,0.6); text-align:left;">
+          <div style="font-family:var(--pixel); font-size:12px; margin-bottom:12px; color:var(--yellow); text-shadow:2px 2px 0 var(--black); text-align:center;">¡DEMOSTRACIÓN DE CORECTITUD Y OPTIMALIDAD!</div>
+          <p style="margin-bottom:10px;"><strong style="color:var(--teal);">1. OPTIMALIDAD:</strong> BFS halló <span style="color:var(--pink);">t(E)</span> vía C a distancia 2. La ruta larga por D (distancia 3) quedó descartada en la cola FIFO sin procesar, garantizando el camino mínimo.</p>
+          <p><strong style="color:var(--yellow);">2. LÓGICA DE HOARE:</strong> El destino entró a 'visitado' y 'encontrado' cambió a 'Verdad' simultáneamente al encolar. El Invariante <span style="color:var(--green);">$I_3$</span> se mantuvo consistente en todo momento ($\text{V} \iff \text{V}$), evitando estados inconsistentes.</p>
+        </div>
       </div>
     </div>
 
-    <!-- Panel Inferior -->
-    <div style="height:150px; background:var(--black); border-top:4px solid var(--yellow); display:flex; padding:15px 50px; gap:30px; flex-shrink:0;">
+    <div style="height:60px; margin: 0 60px; display:flex; align-items:center; gap:20px; background:rgba(255,215,0,0.05); border: 2px dashed var(--yellow); padding:0 20px;">
+      <span style="font-family:var(--pixel); font-size:10px; color:var(--yellow);">COLA FIFO VISUAL:</span>
+      <div id="cola-fifo-display" style="display:flex; gap:10px;"></div>
+    </div>
+
+    <div style="height:140px; background:var(--black); border-top:4px solid var(--yellow); display:flex; padding:15px 60px; gap:40px; flex-shrink:0;">
       <div style="flex:2; font-family:var(--mono); font-size:20px; color:var(--white); display:flex; flex-direction:column; justify-content:center; gap:5px;">
-        <div><span style="color:var(--gray);">visitado =</span> <span id="sv-vis" style="color:var(--yellow);">{s(A)}</span></div>
-        <div><span style="color:var(--gray);">cola     =</span> <span id="sv-cola" style="color:var(--teal);">[s(A)]</span></div>
-        <div><span style="color:var(--gray);">encontrado =</span> <span id="sv-enc" style="color:var(--pink);">Falso</span></div>
+        <div><span style="color:var(--gray);">visitado =</span> <span id="sim-var-vis" style="color:var(--yellow);">{s(A)}</span></div>
+        <div><span style="color:var(--gray);">cola =</span> <span id="sim-var-cola" style="color:var(--teal);">[s(A)]</span></div>
+        <div><span style="color:var(--gray);">encontrado =</span> <span id="sim-var-enc" style="color:var(--pink);">Falso</span></div>
       </div>
-      <div style="flex:1; border-left:4px dashed #222; padding-left:30px; display:flex; flex-direction:column; justify-content:center; gap:8px;">
-        <div id="sl-i1" style="font-family:var(--pixel); font-size:10px; color:var(--gray);">● I1 Alcanzabilidad</div>
-        <div id="sl-i2" style="font-family:var(--pixel); font-size:10px; color:var(--gray);">● I2 Completitud</div>
-        <div id="sl-i3" style="font-family:var(--pixel); font-size:10px; color:var(--gray);">● I3 Consistencia</div>
+      <div style="flex:1; border-left:4px dashed #333; padding-left:40px; display:flex; flex-direction:column; justify-content:center; gap:8px;">
+        <div class="sim-inv" id="sim-i1">I₁ Alcanzabilidad: <span id="led-i1" style="color:var(--green); font-weight:bold;">● ACTIVO</span></div>
+        <div class="sim-inv" id="sim-i2">I₂ Completitud: <span id="led-i2" style="color:var(--green); font-weight:bold;">● ACTIVO</span></div>
+        <div class="sim-inv" id="sim-i3">I₃ Consistencia: <span id="led-i3" style="color:var(--green); font-weight:bold;">● ACTIVO</span></div>
       </div>
     </div>
+    
   </div>
 </div>
 
@@ -1015,111 +1154,185 @@ function goToSlideById(id) {
   if (idx !== -1 && idx !== cur) {
     show(idx, idx > cur ? 1 : -1);
   }
+  closeMenu();
+}
+
+function toggleMenu() {
+  const menu = document.getElementById('side-menu');
+  const overlay = document.getElementById('menu-overlay');
+  const isOpen = menu.classList.toggle('open');
+  overlay.style.display = isOpen ? 'block' : 'none';
+  if (isOpen) updateMenuActiveItem();
+}
+
+function closeMenu() {
+  document.getElementById('side-menu').classList.remove('open');
+  document.getElementById('menu-overlay').style.display = 'none';
+}
+
+function toggleSection(section) {
+  section.classList.toggle('collapsed');
+}
+
+function updateMenuActiveItem() {
+  const items = document.querySelectorAll('.menu-item');
+  items.forEach(item => {
+    const onclick = item.getAttribute('onclick');
+    if (onclick && onclick.includes(`'${SLIDE_IDS[cur]}'`)) {
+      item.classList.add('active');
+      // Expand parent section if collapsed
+      const section = item.closest('.menu-section');
+      if (section) section.classList.remove('collapsed');
+    } else {
+      item.classList.remove('active');
+    }
+  });
 }
 
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); nextSlide(); }
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')  { e.preventDefault(); prevSlide(); }
+  if (e.key === 'Escape') { closeMenu(); }
 });
 
 // ════════════════════════════════════════
-//   SIMULADOR LOGIC
+//   CORRECTED SIMULATOR LOGIC
 // ════════════════════════════════════════
 let simStep = 0;
-function updateQueueUI(items) {
+
+function updateFifoDisplay(elements) {
   const container = document.getElementById('cola-fifo-display');
   container.innerHTML = '';
-  items.forEach(item => {
-    const div = document.createElement('div');
-    div.style.cssText = "background:var(--teal); color:var(--dark); padding:5px 12px; font-family:var(--pixel); font-size:12px; border:2px solid var(--white);";
-    div.innerText = item; container.appendChild(div);
-    gsap.from(div, { scale: 0, duration: 0.3, ease: "back.out(2)" });
+  elements.forEach(el => {
+    const box = document.createElement('div');
+    box.style.cssText = "background:var(--teal); color:var(--dark); padding:5px 12px; font-family:var(--pixel); font-size:12px; border:2px solid var(--white); transition: all 0.2s;";
+    box.innerText = el; 
+    container.appendChild(box);
+    gsap.from(box, { scale: 0, duration: 0.3, ease: "back.out(2)" });
   });
 }
 
 function runSimStep() {
+  if (simStep >= 3) return; // Simulación completada en el paso crítico
   simStep++;
-  const vis = document.getElementById('sv-vis');
-  const col = document.getElementById('sv-cola');
-  const enc = document.getElementById('sv-enc');
   
+  const vis = document.getElementById('sim-var-vis');
+  const cola = document.getElementById('sim-var-cola');
+  const enc = document.getElementById('sim-var-enc');
+  
+  const led1 = document.getElementById('led-i1');
+  const led2 = document.getElementById('led-i2');
+  const led3 = document.getElementById('led-i3');
+
   if (simStep === 1) {
-    gsap.to('#sn-s', { backgroundColor: '#222', color: '#666', borderColor: '#444' });
-    gsap.to(['#sn-b', '#sn-c'], { borderColor: 'var(--teal)', boxShadow: '0 0 20px var(--teal)' });
-    gsap.to(['#l-s-b', '#l-s-c'], { stroke: 'var(--teal)', strokeWidth: 6 });
-    vis.innerText = '{s(A), B, C}'; col.innerText = '[B, C]';
-    updateQueueUI(['B', 'C']);
-    gsap.set(['#sl-i1', '#sl-i2', '#sl-i3'], { color: 'var(--green)' });
+    // PASO 1: Descubrir vecinos directos de s(A) -> Nivel 1 [I₁ ∧ I₂ ∧ I₃ se validan]
+    document.getElementById('sim-node-s').className = 'sim-node visited';
+    document.getElementById('sim-node-b').className = 'sim-node active-s';
+    document.getElementById('sim-node-c').className = 'sim-node active-s';
+    
+    gsap.to('#l-s-b', { stroke: 'var(--teal)', strokeWidth: 6, duration: 0.3 });
+    document.getElementById('l-s-b').setAttribute('marker-end', 'url(#arrow-teal)');
+    gsap.to('#l-s-c', { stroke: 'var(--teal)', strokeWidth: 6, duration: 0.3 });
+    document.getElementById('l-s-c').setAttribute('marker-end', 'url(#arrow-teal)');
+    
+    vis.innerText = '{s(A), B, C}';
+    cola.innerText = '[B, C]';
+    updateFifoDisplay(['B', 'C']);
+    
+    // I₂ parpadea para denotar la bifurcación simétrica del camino a recorrer
+    gsap.fromTo(led2, { opacity: 0.3 }, { opacity: 1, duration: 0.2, repeat: 3, yoyo: true });
+    led2.innerText = '● EXPANDIENDO FRONTERA';
+    led2.style.color = 'var(--yellow)';
+
   } else if (simStep === 2) {
-    gsap.to('#sn-b', { backgroundColor: '#222', color: '#666', borderColor: '#444' });
-    gsap.to('#sn-d', { borderColor: 'var(--teal)', boxShadow: '0 0 20px var(--teal)' });
-    gsap.to('#l-b-d', { stroke: 'var(--teal)', strokeWidth: 6 });
-    vis.innerText = '{s(A), B, C, D}'; col.innerText = '[C, D]';
-    updateQueueUI(['C', 'D']);
+    // PASO 2: Extraer B de la cola, registrar su vecino D. C espera pacientemente en orden FIFO
+    document.getElementById('sim-node-b').className = 'sim-node visited';
+    document.getElementById('sim-node-d').className = 'sim-node active-s';
+    
+    gsap.to('#l-b-d', { stroke: 'var(--teal)', strokeWidth: 6, duration: 0.3 });
+    document.getElementById('l-b-d').setAttribute('marker-end', 'url(#arrow-teal)');
+    
+    vis.innerText = '{s(A), B, C, D}';
+    cola.innerText = '[C, D]';
+    updateFifoDisplay(['C', 'D']);
+    
+    led2.innerText = '● ACTIVO';
+    led2.style.color = 'var(--green)';
+
   } else if (simStep === 3) {
-    gsap.to('#sn-c', { backgroundColor: '#222', color: '#666' });
-    gsap.to('#l-c-t', { stroke: 'var(--pink)', strokeWidth: 8, duration: 0.1, repeat: 6, yoyo: true });
-    gsap.to('#sn-t', { borderColor: 'var(--pink)', boxShadow: '0 0 40px var(--pink)', color: 'var(--pink)' });
-    vis.innerText = '{s(A), B, C, D, t(E)}'; col.innerText = '[D, t(E)]';
-    enc.innerText = 'Verdad'; enc.style.color = 'var(--green)';
-    updateQueueUI(['D', 't(E)']);
-    document.getElementById('sim-popup').style.display = 'block';
-    document.getElementById('btn-sim-next').disabled = true;
+    // PASO 3: Extraer C de la cola, evaluar vecino t(E) al encolar -> ¡PUNTO CRÍTICO!
+    document.getElementById('sim-node-c').className = 'sim-node visited';
+    document.getElementById('sim-node-t').className = 'sim-node active-t';
+    
+    const lineCt = document.getElementById('l-c-t');
+    lineCt.style.stroke = 'var(--pink)';
+    lineCt.setAttribute('marker-end', 'url(#arrow-pink)');
+    
+    // Animación de alta energía para ilustrar el hallazgo radial de la meta
+    gsap.fromTo(lineCt, { strokeWidth: 10 }, { strokeWidth: 4, duration: 0.15, repeat: 5, yoyo: true });
+    
+    vis.innerText = '{s(A), B, C, D, t(E)}';
+    cola.innerText = '[D]'; // Detención prematura del ciclo antes de encolar físicamente a t
+    updateFifoDisplay(['D']);
+    
+    enc.innerText = 'Verdad';
+    enc.style.color = 'var(--green)';
+    
+    // Renderizado y animación del Pop-up Arcade explicativo de la rúbrica
+    const popup = document.getElementById('sim-popup');
+    popup.style.display = 'block';
+    gsap.fromTo(popup, { scale: 0, y: 40 }, { scale: 1, y: 0, duration: 0.5, ease: "back.out(1.2)" });
+    
+    // Conmutación visual del LED de Consistencia total (I₃)
+    led3.innerText = '● ÉXITO DEMOSTRADO';
+    led3.style.color = 'var(--pink)';
+    gsap.fromTo(led3, { opacity: 0.3 }, { opacity: 1, duration: 0.2, repeat: 4, yoyo: true });
   }
 }
 
 function resetSim() {
-  simStep = 0; document.getElementById('btn-sim-next').disabled = false;
+  simStep = 0;
+  
+  // Limpieza total de procesos y líneas temporales de GSAP
+  gsap.killTweensOf('#sim-popup');
+  gsap.killTweensOf('#l-c-t');
+  
+  // Restaurar clases e identificadores estructurales de los nodos
+  document.getElementById('sim-node-s').className = 'sim-node active-s';
+  document.getElementById('sim-node-b').className = 'sim-node';
+  document.getElementById('sim-node-c').className = 'sim-node';
+  document.getElementById('sim-node-d').className = 'sim-node';
+  document.getElementById('sim-node-t').className = 'sim-node';
+  
+  // Limpieza manual y reseteo de aristas SVG
+  ['l-s-b', 'l-s-c', 'l-b-d', 'l-c-t', 'l-d-t'].forEach(id => {
+    const line = document.getElementById(id);
+    line.style.stroke = '#444';
+    line.style.strokeWidth = '4';
+    line.setAttribute('marker-end', 'url(#arrow)');
+  });
+  
+  // Reestablecer estados lógicos de los paneles
+  document.getElementById('sim-var-vis').innerText = '{s(A)}';
+  document.getElementById('sim-var-cola').innerText = '[s(A)]';
+  updateFifoDisplay(['s(A)']);
+  
+  const enc = document.getElementById('sim-var-enc');
+  enc.innerText = 'Falso';
+  enc.style.color = 'var(--pink)';
+  
   document.getElementById('sim-popup').style.display = 'none';
-  ['s', 'b', 'c', 'd', 't'].forEach(n => { gsap.set('#sn-' + n, { clearProps: "all" }); });
-  document.getElementById('sn-s').classList.add('active-s');
-  gsap.set(['#l-s-b', '#l-s-c', '#l-b-d', '#l-c-t', '#l-d-t'], { stroke: '#333', strokeWidth: 4 });
-  document.getElementById('sv-vis').innerText = '{s(A)}';
-  document.getElementById('sv-cola').innerText = '[s(A)]';
-  document.getElementById('sv-enc').innerText = 'Falso';
-  document.getElementById('sv-enc').style.color = 'var(--pink)';
-  gsap.set(['#sl-i1', '#sl-i2', '#sl-i3'], { color: 'var(--gray)' });
-  updateQueueUI(['s(A)']);
-}
-
-async function exportToPPTX() {
-  const overlay = document.getElementById('export-overlay');
-  const status = document.getElementById('export-status');
-  const progress = document.getElementById('export-progress');
-  overlay.style.display = 'flex';
   
-  const pptx = new PptxGenJS();
-  pptx.layout = 'LAYOUT_WIDE';
+  // Restaurar LEDs a su estado Base estable
+  const led1 = document.getElementById('led-i1');
+  const led2 = document.getElementById('led-i2');
+  const led3 = document.getElementById('led-i3');
   
-  const scaler = document.getElementById('scaler');
-  const originalTransform = scaler.style.transform;
-  scaler.style.transform = 'none';
-
-  for (let i = 0; i < SLIDE_IDS.length; i++) {
-    status.innerText = `Capturando slide ${i+1}/${total}...`;
-    progress.style.width = `${((i + 1) / total) * 100}%`;
-    
-    // Quitar clases active de todo y ponerla solo a la actual para captura
-    slides.forEach(s => s.classList.remove('active'));
-    slides[i].classList.add('active');
-    
-    // Forzar opacidad sin usar inline styles que rompan el DOM
-    const anims = slides[i].querySelectorAll('.animate');
-    gsap.set(slides[i], { clearProps: "opacity,transform" });
-    gsap.set(anims, { opacity: 1, y: 0 });
-
-    const canvas = await html2canvas(slides[i], { scale: 2, backgroundColor: '#0A0A0A', logging: false });
-    pptx.addSlide().addImage({ data: canvas.toDataURL('image/png'), x: 0, y: 0, w: '100%', h: '100%' });
-  }
-
-  // Devolver estado a la diapositiva actual
-  slides.forEach(s => s.classList.remove('active'));
-  slides[cur].classList.add('active');
-  scaler.style.transform = originalTransform;
+  led1.innerText = '● ACTIVO'; led1.style.color = 'var(--green)';
+  led2.innerText = '● ACTIVO'; led2.style.color = 'var(--green)';
+  led3.innerText = '● ACTIVO'; led3.style.color = 'var(--green)';
   
-  status.innerText = 'Finalizando...';
-  await pptx.writeFile({ fileName: `BFS_Hoare_Grupo1.pptx` });
-  overlay.style.display = 'none';
+  gsap.set([led1, led2, led3], { clearProps: "all" });
 }
 
 function scaleSlides() {
