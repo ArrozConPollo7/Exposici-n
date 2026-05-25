@@ -238,22 +238,43 @@ html, body {
 ═══════════════════════════════════════ */
 .code-slide-header { background: var(--dark); border-bottom: 6px solid var(--teal); padding: 20px 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .code-slide-body { flex: 1; display: flex; overflow: hidden; }
-.code-pane { width: 750px; background: #0D1B2A; border-right: 6px solid var(--teal); padding: 40px; font-family: var(--mono); font-size: 19px; line-height: 1.7; color: #CCC; flex-shrink: 0; position: relative; }
+.code-pane { width: 40%; background: #0D1B2A; border-right: 6px solid var(--teal); padding: 30px; font-family: var(--mono); font-size: 16px; line-height: 1.6; color: #CCC; flex-shrink: 0; position: relative; overflow-y: auto; }
 .code-pane .line { display: block; white-space: pre; border-left: 5px solid transparent; padding-left: 15px; transition: all 0.3s; margin-bottom: 2px; }
 .code-pane .line.executing { background: rgba(57, 255, 20, 0.25); color: var(--green); font-weight: bold; border-left-color: var(--green); box-shadow: 0 0 15px rgba(57, 255, 20, 0.2); transform: translateX(5px); }
 .code-pane .kw { color: var(--teal); }
 .code-pane .cmt { color: #556677; font-style: italic; }
 .code-pane .op { color: var(--pink); }
 
-.explain-pane { flex: 1; background: var(--cream); padding: 40px 60px; display: flex; flex-direction: column; gap: 15px; color: var(--dark); overflow-y: auto; }
-.explain-pane h3 { font-family: var(--pixel); font-size: 14px; border-bottom: 4px solid var(--yellow); padding-bottom: 10px; margin-bottom: 5px; }
-.explain-pane p { font-size: 18px; line-height: 1.5; }
-.explain-pane .tag { display: inline-block; font-family: var(--pixel); font-size: 11px; padding: 5px 10px; background: var(--yellow); border-radius: 6px; margin-right: 5px; margin-bottom: 5px; }
+.diagram-pane { width: 40%; background: #050505; border-right: 6px solid var(--pink); padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex-shrink: 0; }
+.diagram-box { background: var(--dark); border: 4px solid var(--gray); border-radius: 8px; padding: 15px; position: relative; }
+.diagram-box.teal-border { border-color: var(--teal); box-shadow: 0 0 15px rgba(0, 188, 212, 0.15); }
+.diagram-box.pink-border { border-color: var(--pink); box-shadow: 0 0 15px rgba(255, 64, 129, 0.15); }
+.diagram-title { font-family: var(--pixel); font-size: 12px; color: var(--white); margin-bottom: 15px; text-shadow: 2px 2px 0 var(--black); }
+.diagram-queue { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; min-height: 45px; align-items: center; border-bottom: 2px dashed #333; }
+.queue-item { background: var(--teal); color: var(--dark); padding: 6px 12px; font-family: var(--pixel); font-size: 14px; border: 2px solid var(--white); box-shadow: 0 0 10px var(--teal); flex-shrink: 0; }
+.queue-item.pink { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+.diagram-visited { display: flex; flex-wrap: wrap; gap: 10px; min-height: 45px; }
+.visited-item { background: #222; color: #888; border: 2px solid #555; padding: 6px 12px; font-family: var(--pixel); font-size: 14px; border-radius: 4px; }
+.visited-item.new { background: var(--yellow); color: var(--dark); border-color: var(--white); box-shadow: 0 0 10px var(--yellow); }
+
+.diagram-leds { display: flex; justify-content: space-around; background: #111; padding: 15px; border-radius: 8px; border: 2px solid #333; margin-top: auto; }
+.led-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.led { width: 18px; height: 18px; border-radius: 50%; background: #333; border: 2px solid #111; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+.led.on { background: var(--green); box-shadow: 0 0 15px var(--green), inset 0 2px 5px rgba(255,255,255,0.5); border-color: #004400; }
+.led.pink { background: var(--pink); box-shadow: 0 0 15px var(--pink), inset 0 2px 5px rgba(255,255,255,0.5); border-color: #440000; }
+.led-label { font-family: var(--pixel); font-size: 10px; color: #666; }
+.led.on + .led-label { color: var(--green); text-shadow: 0 0 5px var(--green); }
+.led.pink + .led-label { color: var(--pink); text-shadow: 0 0 5px var(--pink); }
+
+.explain-pane { flex: 1; width: 20%; background: var(--cream); padding: 30px; display: flex; flex-direction: column; gap: 15px; color: var(--dark); overflow-y: auto; font-size: 15px; line-height: 1.5; }
+.explain-pane h3 { font-family: var(--pixel); font-size: 12px; border-bottom: 4px solid var(--yellow); padding-bottom: 8px; margin-bottom: 5px; }
+.explain-pane p { font-size: 15px; }
+.explain-pane .tag { display: inline-block; font-family: var(--pixel); font-size: 9px; padding: 4px 8px; background: var(--yellow); border-radius: 4px; margin-right: 4px; margin-bottom: 4px; }
 .explain-pane .tag.teal { background: var(--teal); }
 .explain-pane .tag.pink { background: var(--pink); }
-.explain-note { margin-top: auto; background: #FFF3B0; border-left: 8px solid var(--yellow); padding: 15px; font-size: 17px; line-height: 1.4; }
+.explain-note { margin-top: auto; background: #FFF3B0; border-left: 6px solid var(--yellow); padding: 12px; font-size: 14px; }
 
-/* Variable Watch */
+/* Variable Watch (kept for compatibility but won't be heavily used in this new layout) */
 .var-watch { 
   position: absolute; bottom: 30px; right: 30px; 
   background: rgba(10,10,10,0.9); border: 2px solid var(--teal); 
@@ -718,13 +739,31 @@ html, body {
       <span class="line l6 cmt">  // Cuerpo del algoritmo</span>
       <span class="line l7 kw">FIN ALGORITMO</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO</div>
+        <div class="diagram-queue">
+          <span style="color:#666; font-size:12px; font-family:var(--mono);">[ NO INICIALIZADA ]</span>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <span style="color:#666; font-size:12px; font-family:var(--mono);">[ NO INICIALIZADO ]</span>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led"></div><div class="led-label">I₃: OK</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
       <h3 class="animate">ASERCIONES INICIALES</h3>
-      <p class="animate">Garantizamos que las entradas son válidas:</p>
-      <p class="animate"><span class="tag">G=(V,E)</span> Grafo no dirigido.</p>
-      <p class="animate"><span class="tag teal">s, t ∈ V</span> Origen y destino existen.</p>
-      <p class="animate"><span class="tag pink">V ≠ ∅</span> El grafo no está vacío.</p>
-      <div class="explain-note animate">En Lógica de Hoare, esto es <strong>P</strong>. Sin ella, no hay garantía de corrección.</div>
+      <p class="animate"><span class="tag">G=(V,E)</span> Válido.</p>
+      <p class="animate"><span class="tag teal">s, t ∈ V</span> Existen.</p>
+      <p class="animate"><span class="tag pink">V ≠ ∅</span> No vacío.</p>
+      <div class="explain-note animate">En Lógica de Hoare, esto es <strong>P</strong>. Garantiza un inicio seguro.</div>
     </div>
   </div>
 </div>
@@ -743,18 +782,31 @@ html, body {
       <span class="line l9">  cola       ← Cola_Vacia()</span>
       <span class="line l10">  encontrado ← Falso</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO</div>
+        <div class="diagram-queue">
+          <span style="color:#666; font-size:12px; font-family:var(--mono);">[ VACÍA ]</span>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <span style="color:#666; font-size:12px; font-family:var(--mono);">∅</span>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₃: OK</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
       <h3 class="animate">INICIALIZACIÓN</h3>
-      <p class="animate">Preparamos las variables de estado:</p>
-      <p class="animate"><span class="tag">visitado</span> Conjunto para marcar nodos vistos.</p>
-      <p class="animate"><span class="tag teal">cola</span> Estructura FIFO de espera.</p>
-      <p class="animate"><span class="tag pink">encontrado</span> Bandera de éxito.</p>
-    </div>
-    <div class="var-watch" id="vw2">
-      <div class="v-header">REGISTROS</div>
-      <div class="v-row"><span>visitado</span> <span class="v-val">∅</span></div>
-      <div class="v-row"><span>cola</span> <span class="v-val">[]</span></div>
-      <div class="v-row"><span>encontrado</span> <span class="v-val">F</span></div>
+      <p class="animate"><span class="tag">visitado</span> = ∅</p>
+      <p class="animate"><span class="tag teal">cola</span> = []</p>
+      <p class="animate"><span class="tag pink">encontrado</span> = Falso</p>
+      <div class="explain-note animate">Variables listas. LEDs encendidos (estado trivial).</div>
     </div>
   </div>
 </div>
@@ -772,20 +824,30 @@ html, body {
       <span class="line">&nbsp;</span>
       <span class="line l13 cmt">  // ← I₁, I₂, I₃ establecidos aquí</span>
     </div>
-    <div class="explain-pane">
-      <h3 class="animate">I₁ — CASO BASE (ALCANZABILIDAD)</h3>
-      <p class="animate">Antes de la primera iteración: $\text{visitado} = \{s\}$. Todo vértice en visitado es $s$, que está a distancia 0 de $s$. Por tanto $s$ es alcanzable desde $s$. ✓</p>
-      
-      <h3 class="animate">I₂ — CASO BASE (EXPLORACIÓN)</h3>
-      <p class="animate">Si $t$ es alcanzable desde $s$, existe un camino $s \to v_1 \to \dots \to t$. El primer arco $s \to v_1$ implica que $v_1 \in \text{Vecinos}(G, s)$. Como $s$ está en cola, se procesará y $v_1$ (o $t$) será descubierto. ✓</p>
-
-      <h3 class="animate">I₃ — CASO BASE (CONSISTENCIA)</h3>
-      <p class="animate">$\text{encontrado} = \text{false}$ (valor inicial). $t$ no ha sido verificado. $\text{false} \iff \text{false}$. La bicondicional se satisface trivialmente. ✓</p>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO</div>
+        <div class="diagram-queue">
+          <div class="queue-item animate">s</div>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item new animate">s</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₃: OK</div></div>
+      </div>
     </div>
-    <div class="var-watch" id="vw3">
-      <div class="v-header">REGISTROS</div>
-      <div class="v-row"><span>visitado</span> <span class="v-val">{s}</span></div>
-      <div class="v-row"><span>cola</span> <span class="v-val">[s]</span></div>
+    <div class="explain-pane">
+      <h3 class="animate">CASO BASE ESTABLECIDO</h3>
+      <p class="animate"><strong>I₁:</strong> $s$ es alcanzable desde $s$.</p>
+      <p class="animate"><strong>I₂:</strong> $s$ en cola asegura la exploración.</p>
+      <p class="animate"><strong>I₃:</strong> Aún no encontrado, $t \notin visitado$.</p>
     </div>
   </div>
 </div>
@@ -805,11 +867,32 @@ html, body {
       <span class="line">  Agregar(visitado, vecino)</span>
       <span class="line">  Encolar(cola, vecino)</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO</div>
+        <div class="diagram-queue">
+          <div class="queue-item">s</div>
+          <div class="queue-item animate">v₁</div>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item">s</div>
+          <div class="visited-item new animate">v₁</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₃: OK</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
-      <h3 class="animate">PASO INDUCTIVO: t NO ENCONTRADO</h3>
-      <p class="animate"><strong>I₁ se preserva:</strong> <em>actual</em> es alcanzable por hipótesis. Existe arco (actual, vecino), luego $\text{visitado} \cup \{\text{vecino}\}$ son alcanzables desde $s$. ✓</p>
-      <p class="animate"><strong>I₂ se preserva:</strong> $\text{vecino} \neq t \land \text{vecino} \notin \text{visitado} \to$ se encola. La frontera de exploración se expande; si $t$ era alcanzable antes, sigue siéndolo desde la nueva cola. ✓</p>
-      <p class="animate"><strong>I₃ se preserva:</strong> <em>encontrado</em> sigue siendo false. $t$ no ha sido alcanzado. $\text{false} \iff \text{false}$. ✓</p>
+      <h3 class="animate">SUBCASO A: EXPANSIÓN</h3>
+      <p class="animate"><strong>I₁:</strong> $v_1$ es alcanzable vía $s$.</p>
+      <p class="animate"><strong>I₂:</strong> Se encola $v_1$, expandiendo la frontera.</p>
+      <p class="animate"><strong>I₃:</strong> Se mantiene $false \iff false$.</p>
     </div>
   </div>
 </div>
@@ -828,12 +911,32 @@ html, body {
       <span class="line kw">SI</span> vecino = t <span class="kw">ENTONCES</span>
       <span class="line">  encontrado ← Verdad</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box pink-border" style="box-shadow: 0 0 30px rgba(255, 64, 129, 0.4);">
+        <div class="diagram-title" style="color:var(--pink);">¡DESTINO ALCANZADO!</div>
+        <div style="text-align:center; margin: 10px 0;">
+          <span style="font-family:var(--pixel); font-size:24px; color:var(--pink); text-shadow: 0 0 15px var(--pink);" class="animate">encontrado = true</span>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item">s</div>
+          <div class="visited-item">v₁</div>
+          <div class="visited-item new animate" style="background:var(--pink); color:var(--white);">t</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led pink animate"></div><div class="led-label">I₃: ÉXITO</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
-      <h3 class="animate">PASO INDUCTIVO: t ENCONTRADO</h3>
-      <p class="animate"><strong>I₁ se preserva:</strong> $t$ es vecino de <em>actual</em> (alcanzable). Por arco (actual, $t$), $t$ es alcanzable. $\text{visitado} \cup \{t\}$ cumple $I_1$. ✓</p>
-      <p class="animate"><strong>I₂ se preserva:</strong> <em>encontrado</em> $\leftarrow$ true y el bucle termina. No se requiere preservar la condición de exploración futura (vacuamente cierto). ✓</p>
-      <p class="animate"><strong>I₃ se preserva:</strong> $t$ ingresa a visitado y <em>encontrado</em> $\leftarrow$ true simultáneamente. $\text{true} \iff \text{true}$ ($t$ alcanzado y verificado). ✓</p>
-      <div class="explain-note animate">Nota: La detección ocurre al <strong>ENCOLAR</strong>, garantizando consistencia inmediata.</div>
+      <h3 class="animate">SUBCASO B: HALLAZGO</h3>
+      <p class="animate"><strong>I₁:</strong> $t$ es alcanzable.</p>
+      <p class="animate"><strong>I₂:</strong> Bucle termina (vacuo).</p>
+      <p class="animate"><strong>I₃:</strong> $true \iff true$ simultáneamente.</p>
     </div>
   </div>
 </div>
@@ -851,12 +954,31 @@ html, body {
       <span class="line l16">    PARA CADA vecino DE Vecinos(G, actual)</span>
       <span class="line l17 kw">  FIN MIENTRAS</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO</div>
+        <div class="diagram-queue">
+          <div class="queue-item">s</div>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item">s</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₃: OK</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
       <h3 class="animate">BUCLE PRINCIPAL</h3>
       <p class="animate">Condición de permanencia:</p>
-      <p class="animate"><span class="tag teal">cola ≠ ∅</span> Quedan nodos por explorar.</p>
-      <p class="animate"><span class="tag pink">¬encontrado</span> Aún no llegamos al destino.</p>
-      <div class="explain-note animate">Cota: <strong>|V| − |visitado|</strong>. Como el grafo es finito, el bucle debe terminar.</div>
+      <p class="animate"><span class="tag teal">cola ≠ ∅</span> Hay nodos.</p>
+      <p class="animate"><span class="tag pink">¬encontrado</span> Meta pendiente.</p>
+      <div class="explain-note animate">Cota: <strong>|V|-|visitado|</strong> asegura terminación.</div>
     </div>
   </div>
 </div>
@@ -872,15 +994,29 @@ html, body {
       <span class="line l15">    actual ← Desencolar(cola)</span>
       <span class="line l16">    PARA CADA vecino DE Vecinos(G, actual)</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO (Extrayendo)</div>
+        <div class="diagram-queue">
+          <div class="queue-item animate" style="opacity:0.3; transform:translateX(-20px);">s</div>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item">s</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₃: OK</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
       <h3 class="animate">EXPANSIÓN</h3>
       <p class="animate">Extraemos el frente de la cola (FIFO).</p>
-      <p class="animate">Por <strong>I₁</strong>, sabemos que <em>actual</em> es alcanzable desde el origen.</p>
-      <div class="explain-note animate">Procesaremos todos sus vecinos para descubrir el siguiente nivel.</div>
-    </div>
-    <div class="var-watch" id="vw5">
-      <div class="v-header">REGISTROS</div>
-      <div class="v-row"><span>actual</span> <span class="v-val">u_i</span></div>
+      <p class="animate">Por <strong>I₁</strong>, <em>actual</em> es alcanzable.</p>
     </div>
   </div>
 </div>
@@ -896,11 +1032,30 @@ html, body {
       <span class="line l18">      SI vecino ∉ visitado ENTONCES</span>
       <span class="line l19">        Agregar(visitado, vecino)</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box teal-border">
+        <div class="diagram-title">COLA FIFO</div>
+        <div class="diagram-queue">
+          <div class="queue-item">v₁</div>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item">s</div>
+          <div class="visited-item new animate">v₁</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₃: OK</div></div>
+      </div>
+    </div>
     <div class="explain-pane">
       <h3 class="animate">CONTROL DE VISITAS</h3>
-      <p class="animate">Solo procesamos nodos que <strong>no</strong> hemos visto.</p>
-      <p class="animate">Evita ciclos y garantiza que cada nodo se encole máximo una vez.</p>
-      <p class="animate"><strong>I₁ se preserva:</strong> vecino es alcanzable vía actual.</p>
+      <p class="animate">Solo procesamos nodos no vistos.</p>
+      <p class="animate">Evita ciclos infinitos.</p>
     </div>
   </div>
 </div>
@@ -918,14 +1073,31 @@ html, body {
       <span class="line l22">        SINO</span>
       <span class="line l23">          Encolar(cola, vecino)</span>
     </div>
-    <div class="explain-pane">
-      <h3 class="animate">DETECCIÓN DE META</h3>
-      <p class="animate">Detectamos <em>t</em> al encolar para mantener <strong>I₃</strong> consistente.</p>
-      <p class="animate">Si <em>vecino = t</em>, activamos la bandera. Si no, lo encolamos para explorar después.</p>
+    <div class="diagram-pane animate">
+      <div class="diagram-box pink-border" style="box-shadow: 0 0 30px rgba(255, 64, 129, 0.4);">
+        <div class="diagram-title" style="color:var(--pink);">¡DESTINO ALCANZADO!</div>
+        <div style="text-align:center; margin: 10px 0;">
+          <span style="font-family:var(--pixel); font-size:24px; color:var(--pink); text-shadow: 0 0 15px var(--pink);" class="animate">encontrado = true</span>
+        </div>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">CONJUNTO VISITADO</div>
+        <div class="diagram-visited">
+          <div class="visited-item">s</div>
+          <div class="visited-item">v₁</div>
+          <div class="visited-item new animate" style="background:var(--pink); color:var(--white);">t</div>
+        </div>
+      </div>
+      <div class="diagram-leds">
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₁: OK</div></div>
+        <div class="led-wrap"><div class="led on"></div><div class="led-label">I₂: OK</div></div>
+        <div class="led-wrap"><div class="led pink animate"></div><div class="led-label">I₃: ÉXITO</div></div>
+      </div>
     </div>
-    <div class="var-watch" id="vw7">
-      <div class="v-header">REGISTROS</div>
-      <div class="v-row"><span>encontrado</span> <span class="v-val">Verdad</span></div>
+    <div class="explain-pane">
+      <h3 class="animate">DETECCIÓN</h3>
+      <p class="animate">Hallazgo al encolar asegura <strong>I₃</strong>.</p>
+      <p class="animate">Si no es <em>t</em>, encolar preserva <strong>I₂</strong>.</p>
     </div>
   </div>
 </div>
@@ -941,10 +1113,20 @@ html, body {
       <span class="line l24">  // ⟨ Postcondición Q ⟩</span>
       <span class="line l25 kw">  RETORNAR encontrado</span>
     </div>
+    <div class="diagram-pane animate">
+      <div class="diagram-box pink-border" style="height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; box-shadow: 0 0 50px rgba(255, 64, 129, 0.3);">
+        <div class="pixel-title pink animate" style="font-size:32px;">Q: SATISFECHA</div>
+        <div style="margin-top:20px; font-size:24px; font-family:var(--mono); color:var(--white);" class="animate">
+          encontrado = true<br><br>
+          <span style="color:var(--pink);">⟺</span><br><br>
+          camino(s, t) ∈ G
+        </div>
+      </div>
+    </div>
     <div class="explain-pane">
       <h3 class="animate">RESULTADO FINAL</h3>
-      <p class="animate">El algoritmo termina. El resultado es infalible gracias a la demostración de los tres invariantes.</p>
-      <div class="explain-note animate"><strong>Q: encontrado = Verdad ⟺ Existe camino(s,t)</strong></div>
+      <p class="animate">Algoritmo validado formalmente.</p>
+      <div class="explain-note animate"><strong>Q</strong> es irrefutable.</div>
     </div>
   </div>
 </div>
